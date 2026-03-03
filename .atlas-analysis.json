@@ -1,0 +1,126 @@
+{
+  "projectType": "general",
+  "projectName": "Siebenlande",
+  "projectDescription": "A personal D&D campaign notebook built with Obsidian and Quartz for publishing digital gardens as websites",
+  "theme": "maple",
+  "primaryColor": "#284b63",
+  "lightColor": "#84a59d",
+  "darkColor": "#7b97aa",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Campaign",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "campaign/index",
+              "campaign/episodes"
+            ]
+          },
+          {
+            "group": "Journal",
+            "pages": [
+              "campaign/journal/index",
+              "campaign/journal/characters",
+              "campaign/journal/quests"
+            ]
+          },
+          {
+            "group": "Legende",
+            "pages": [
+              "campaign/legende/index",
+              "campaign/legende/geography",
+              "campaign/legende/factions",
+              "campaign/legende/culture",
+              "campaign/legende/creatures"
+            ]
+          },
+          {
+            "group": "Regeln",
+            "pages": [
+              "campaign/regeln/index",
+              "campaign/regeln/character-creation",
+              "campaign/regeln/combat",
+              "campaign/regeln/playable-races"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Quartz Framework",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "quartz/introduction",
+              "quartz/installation",
+              "quartz/quickstart"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "quartz/config/overview",
+              "quartz/config/site-settings",
+              "quartz/config/theme",
+              "quartz/config/layout"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "quartz/components/overview",
+              "quartz/components/built-in",
+              "quartz/components/custom"
+            ]
+          },
+          {
+            "group": "Plugins",
+            "pages": [
+              "quartz/plugins/overview",
+              "quartz/plugins/transformers",
+              "quartz/plugins/filters",
+              "quartz/plugins/emitters"
+            ]
+          },
+          {
+            "group": "CLI",
+            "pages": [
+              "quartz/cli/commands",
+              "quartz/cli/build",
+              "quartz/cli/sync"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Digital garden static site generator",
+    "Obsidian-flavored markdown support",
+    "Component-based page layouts",
+    "Plugin system for transformers, filters, and emitters",
+    "CLI for building and syncing",
+    "Full-text search and graph visualization",
+    "Dark mode and reader mode",
+    "Multilingual support (German primary)",
+    "D&D campaign organization system"
+  ],
+  "publicApiSurface": [
+    "quartz create - Initialize new Quartz project",
+    "quartz build - Build static site",
+    "quartz sync - Sync with GitHub",
+    "quartz update - Get latest updates",
+    "QuartzConfig interface",
+    "PageLayout interface",
+    "Plugin.FrontMatter()",
+    "Plugin.ObsidianFlavoredMarkdown()",
+    "Plugin.GitHubFlavoredMarkdown()",
+    "Component.Explorer()",
+    "Component.Graph()",
+    "Component.Search()",
+    "Component.Darkmode()",
+    "Component.TableOfContents()"
+  ]
+}
