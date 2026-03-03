@@ -1,0 +1,737 @@
+---
+title: Emitter Plugins
+description: Generate output files and assets in Quartz
+---
+
+Emitter plugins generate the final output files for your Quartz site. They run after transformers process content and filters determine what to publish.
+
+## How Emitters Work
+
+Emitters receive all processed content and generate output files:
+
+```typescript
+export type QuartzEmitterPluginInstance = {
+  name: string
+  emit: (
+    ctx: BuildCtx,
+    content: ProcessedContent[],
+    resources: StaticResources,
+  ) => Promise<FilePath[]> | AsyncGenerator<FilePath>
+  partialEmit?: (...) => Promise<FilePath[]> | AsyncGenerator<FilePath> | null
+  getQuartzComponents?: (ctx: BuildCtx) => QuartzComponent[]
+  externalResources?: (ctx: BuildCtx) => Partial<StaticResources>
+}
+```
+
+<Info>
+  Emitters can be run in parallel, so they should not depend on each other's output.
+</Info>
+
+## Core Emitters
+
+### ContentPage
+
+Generates individual HTML pages for each Markdown file.
+
+```typescript title="Configuration"
+Plugin.ContentPage({
+  // Optional: customize layout components
+  head: MyCustomHead,
+  header: [MyHeader],
+  beforeBody: [Breadcrumbs],
+  pageBody: Content(),
+  left: [DesktopOnly(TableOfContents())],
+  right: [Graph(), Backlinks()],
+  footer: Footer(),
+})
+```
+
+**Features:**
+- Renders Markdown content to HTML
+- Applies page layout and components
+- Generates SEO metadata
+- Handles internal links
+
+**Output:**
+- `{slug}.html` for each content file
+- Skips tag pages and folder indexes (handled by other emitters)
+
+<Tip>
+  ContentPage is essential - your site needs this to display content!
+</Tip>
+
+---
+
+### Assets
+
+Copies non-Markdown files (images, PDFs, videos) to the output directory.
+
+```typescript title="Configuration"
+Plugin.Assets()
+```
+
+**Implementation:**
+
+```typescript title="quartz/plugins/emitters/assets.ts"
+export const Assets: QuartzEmitterPlugin = () => {
+  return {
+    name: "Assets",
+    async *emit({ argv, cfg }) {
+      // Glob all non-MD files
+      const fps = await glob("**", argv.directory, [
+        "**/*.md", 
+        ...cfg.configuration.ignorePatterns
+      ])
+      
+      for (const fp of fps) {
+        yield copyFile(argv, fp)
+      }
+    },
+  }
+}
+```
+
+**Behavior:**
+- Copies images, PDFs, videos, etc.
+- Preserves directory structure
+- Respects `ignorePatterns` in config
+- Slugifies output filenames
+- Preserves `.html` filenames
+
+<Note>
+  Assets runs in parallel with other emitters for faster builds.
+</Note>
+
+---
+
+### Static
+
+Copies static files from `quartz/static/` directory.
+
+```typescript title="Configuration"
+Plugin.Static()
+```
+
+**Usage:**
+
+Place files in `quartz/static/` to include them in the output:
+
+```
+quartz/static/
+├── robots.txt
+├── favicon.ico
+├── images/
+│   └── logo.png
+└── files/
+    └── download.pdf
+```
+
+These will be copied to the root of your output directory.
+
+---
+
+### ComponentResources
+
+Generates CSS and JavaScript bundles for Quartz components.
+
+```typescript title="Configuration"
+Plugin.ComponentResources()
+```
+
+**Output:**
+- `index.css` - Compiled styles
+- `prescript.js` - Runs before page load
+- `postscript.js` - Runs after DOM ready
+
+**Features:**
+- Bundles component styles
+- Minifies JavaScript
+- Handles theme variables
+- Includes component dependencies
+
+<Warning>
+  Required for proper styling and functionality. Don't remove this emitter!
+</Warning>
+
+---
+
+### ContentIndex
+
+Generates search index, sitemap, and RSS feed.
+
+```typescript title="Configuration"
+Plugin.ContentIndex({
+  enableSiteMap: true,
+  enableRSS: true,
+  rssLimit: 10,
+  rssFullHtml: false,
+  rssSlug: "index",
+  includeEmptyFiles: true,
+})
+```
+
+<ParamField path="enableSiteMap" type="boolean" default={true}>
+  Generate XML sitemap for SEO
+</ParamField>
+
+<ParamField path="enableRSS" type="boolean" default={true}>
+  Generate RSS feed
+</ParamField>
+
+<ParamField path="rssLimit" type="number" default={10}>
+  Maximum number of items in RSS feed
+</ParamField>
+
+<ParamField path="rssFullHtml" type="boolean" default={false}>
+  Include full HTML content in RSS (vs. description only)
+</ParamField>
+
+<ParamField path="rssSlug" type="string" default="index">
+  Slug for RSS feed file
+</ParamField>
+
+<ParamField path="includeEmptyFiles" type="boolean" default={true}>
+  Include files with no content in index
+</ParamField>
+
+**Output:**
+- `sitemap.xml` - Site structure for search engines
+- `index.xml` - RSS feed (or custom slug)
+- `static/contentIndex.json` - Search index
+
+---
+
+### FolderPage
+
+Generates index pages for folders.
+
+```typescript title="Configuration"
+Plugin.FolderPage()
+```
+
+**Features:**
+- Lists all pages in a folder
+- Shows subfolder structure
+- Sortable by date or title
+- Customizable layout
+
+**Example:**
+
+For folder structure:
+```
+content/
+└── blog/
+    ├── post1.md
+    └── post2.md
+```
+
+Generates: `blog/index.html` with list of posts.
+
+---
+
+### TagPage
+
+Generates index pages for each tag.
+
+```typescript title="Configuration"
+Plugin.TagPage()
+```
+
+**Features:**
+- Creates page for each unique tag
+- Lists all content with that tag
+- Sortable by date
+- Tag hierarchy support
+
+**Example:**
+
+Content with `tags: [tutorial, quartz]` creates:
+- `tags/tutorial/index.html`
+- `tags/quartz/index.html`
+
+---
+
+### AliasRedirects
+
+Generates redirect pages for aliases defined in frontmatter.
+
+```typescript title="Configuration"
+Plugin.AliasRedirects()
+```
+
+**Usage:**
+
+```yaml title="content/my-page.md"
+---
+title: My Page
+aliases:
+  - old-url
+  - previous-name
+---
+```
+
+Generates redirect pages:
+- `old-url.html` → redirects to `my-page.html`
+- `previous-name.html` → redirects to `my-page.html`
+
+<Tip>
+  Great for maintaining old URLs when you rename pages!
+</Tip>
+
+---
+
+### NotFoundPage
+
+Generates custom 404 error page.
+
+```typescript title="Configuration"
+Plugin.NotFoundPage()
+```
+
+**Output:**
+- `404.html` - Custom not found page
+
+**Features:**
+- Uses your site theme
+- Shows navigation
+- Provides search functionality
+
+---
+
+### Favicon
+
+Copies favicon to output directory.
+
+```typescript title="Configuration"
+Plugin.Favicon()
+```
+
+Place favicon files in `quartz/static/` and they'll be copied to the root.
+
+---
+
+### CNAME
+
+Generates CNAME file for custom domains (GitHub Pages).
+
+```typescript title="Configuration"
+Plugin.CNAME()
+```
+
+Uses `baseUrl` from configuration to create CNAME file.
+
+---
+
+### CustomOgImages
+
+Generates custom Open Graph images for social media previews.
+
+```typescript title="Configuration"
+Plugin.CustomOgImages()
+```
+
+<Warning>
+  Significantly increases build time. Comment out for faster development builds.
+</Warning>
+
+## Emitter Configuration Example
+
+```typescript title="quartz.config.ts"
+const config: QuartzConfig = {
+  plugins: {
+    emitters: [
+      // Redirects first (fast)
+      Plugin.AliasRedirects(),
+      
+      // Core resources
+      Plugin.ComponentResources(),
+      
+      // Content pages
+      Plugin.ContentPage(),
+      Plugin.FolderPage(),
+      Plugin.TagPage(),
+      Plugin.NotFoundPage(),
+      
+      // Indexes and feeds
+      Plugin.ContentIndex({
+        enableSiteMap: true,
+        enableRSS: true,
+        rssLimit: 20,
+      }),
+      
+      // Assets (runs in parallel)
+      Plugin.Assets(),
+      Plugin.Static(),
+      Plugin.Favicon(),
+      Plugin.CNAME(),
+      
+      // Slow emitters last (comment out in dev)
+      // Plugin.CustomOgImages(),
+    ],
+  },
+}
+```
+
+## Creating Custom Emitters
+
+### Basic Custom Emitter
+
+```typescript title="plugins/emitters/myEmitter.ts"
+import { QuartzEmitterPlugin } from "../types"
+import { write } from "./helpers"
+import { FilePath, FullSlug } from "../../util/path"
+
+export const CustomSitemap: QuartzEmitterPlugin = () => {
+  return {
+    name: "CustomSitemap",
+    async *emit(ctx, content) {
+      const urls = content
+        .map(([_, file]) => file.data.slug!)
+        .join("\n")
+      
+      yield write({
+        ctx,
+        content: urls,
+        slug: "sitemap" as FullSlug,
+        ext: ".txt",
+      })
+    },
+  }
+}
+```
+
+### Emitter with File Generation
+
+```typescript title="plugins/emitters/jsonExport.ts"
+import { QuartzEmitterPlugin } from "../types"
+import { write } from "./helpers"
+import { FilePath, FullSlug } from "../../util/path"
+
+export interface Options {
+  includeContent: boolean
+}
+
+const defaultOptions: Options = {
+  includeContent: false,
+}
+
+export const JSONExport: QuartzEmitterPlugin<Partial<Options>> = (userOpts) => {
+  const opts = { ...defaultOptions, ...userOpts }
+  
+  return {
+    name: "JSONExport",
+    async *emit(ctx, content) {
+      const data = content.map(([tree, file]) => ({
+        slug: file.data.slug,
+        title: file.data.frontmatter?.title,
+        tags: file.data.frontmatter?.tags,
+        content: opts.includeContent ? file.data.text : undefined,
+      }))
+      
+      yield write({
+        ctx,
+        content: JSON.stringify(data, null, 2),
+        slug: "export" as FullSlug,
+        ext: ".json",
+      })
+    },
+  }
+}
+```
+
+### Emitter with Multiple Files
+
+```typescript title="plugins/emitters/perTagPages.ts"
+import { QuartzEmitterPlugin } from "../types"
+import { write } from "./helpers"
+import { FullSlug } from "../../util/path"
+
+export const PerTagJSON: QuartzEmitterPlugin = () => {
+  return {
+    name: "PerTagJSON",
+    async *emit(ctx, content) {
+      // Group content by tag
+      const tagMap = new Map<string, any[]>()
+      
+      for (const [_, file] of content) {
+        const tags = file.data.frontmatter?.tags || []
+        for (const tag of tags) {
+          if (!tagMap.has(tag)) {
+            tagMap.set(tag, [])
+          }
+          tagMap.get(tag)!.push({
+            title: file.data.frontmatter?.title,
+            slug: file.data.slug,
+          })
+        }
+      }
+      
+      // Emit one JSON file per tag
+      for (const [tag, items] of tagMap) {
+        yield write({
+          ctx,
+          content: JSON.stringify(items, null, 2),
+          slug: `tags/${tag}/data` as FullSlug,
+          ext: ".json",
+        })
+      }
+    },
+  }
+}
+```
+
+## Partial Emit (Incremental Builds)
+
+Emitters can implement `partialEmit` for faster development rebuilds:
+
+```typescript
+export const MyEmitter: QuartzEmitterPlugin = () => {
+  return {
+    name: "MyEmitter",
+    
+    // Full build
+    async *emit(ctx, content, resources) {
+      for (const [tree, file] of content) {
+        yield processFile(ctx, tree, file)
+      }
+    },
+    
+    // Incremental rebuild (dev mode)
+    async *partialEmit(ctx, content, resources, changeEvents) {
+      // Only process changed files
+      const changedSlugs = new Set(
+        changeEvents
+          .filter(e => e.type !== "delete" && e.file)
+          .map(e => e.file!.data.slug!)
+      )
+      
+      for (const [tree, file] of content) {
+        if (changedSlugs.has(file.data.slug!)) {
+          yield processFile(ctx, tree, file)
+        }
+      }
+    },
+  }
+}
+```
+
+<Info>
+  `partialEmit` is called during `quartz build --serve` for faster hot reloads.
+</Info>
+
+## Using Helper Functions
+
+Quartz provides helper functions for emitters:
+
+```typescript
+import { write } from "./helpers"
+import path from "path"
+import fs from "fs"
+
+// Write HTML/text files
+yield write({
+  ctx,
+  content: htmlString,
+  slug: "my-page" as FullSlug,
+  ext: ".html",
+})
+
+// Write to specific path
+const dest = path.join(ctx.argv.output, "custom", "path.txt")
+await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+await fs.promises.writeFile(dest, content)
+yield dest as FilePath
+```
+
+## Accessing Components
+
+Emitters can specify which components they use:
+
+```typescript
+import { Content } from "../../components"
+import { QuartzComponent } from "../../components/types"
+
+export const MyEmitter: QuartzEmitterPlugin = () => {
+  return {
+    name: "MyEmitter",
+    
+    getQuartzComponents(ctx) {
+      return [
+        Content(),
+        // ... other components
+      ]
+    },
+    
+    async *emit(ctx, content, resources) {
+      // ...
+    },
+  }
+}
+```
+
+<Tip>
+  This helps Quartz optimize resource loading by only including needed components.
+</Tip>
+
+## External Resources
+
+Emitters can inject CSS/JS like transformers:
+
+```typescript
+export const MyEmitter: QuartzEmitterPlugin = () => {
+  return {
+    name: "MyEmitter",
+    
+    externalResources(ctx) {
+      return {
+        css: [{ content: "https://example.com/style.css" }],
+        js: [
+          {
+            src: "https://example.com/script.js",
+            loadTime: "afterDOMReady",
+            contentType: "external",
+          },
+        ],
+        additionalHead: [
+          <meta name="custom" content="value" />,
+        ],
+      }
+    },
+    
+    async *emit(ctx, content, resources) {
+      // ...
+    },
+  }
+}
+```
+
+## Common Emitter Patterns
+
+<AccordionGroup>
+  <Accordion title="Generate Aggregation Pages">
+    ```typescript
+    async *emit(ctx, content) {
+      // Group by year
+      const byYear = new Map()
+      for (const [_, file] of content) {
+        const year = new Date(file.data.frontmatter?.date).getFullYear()
+        if (!byYear.has(year)) byYear.set(year, [])
+        byYear.get(year).push(file)
+      }
+      
+      // Emit page per year
+      for (const [year, files] of byYear) {
+        yield write({
+          ctx,
+          content: renderYearPage(year, files),
+          slug: `archive/${year}` as FullSlug,
+          ext: ".html",
+        })
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Export Data Formats">
+    ```typescript
+    async *emit(ctx, content) {
+      const data = content.map(([_, file]) => ({
+        title: file.data.frontmatter?.title,
+        slug: file.data.slug,
+      }))
+      
+      // JSON
+      yield write({
+        ctx,
+        content: JSON.stringify(data),
+        slug: "data" as FullSlug,
+        ext: ".json",
+      })
+      
+      // CSV
+      const csv = data.map(d => `${d.title},${d.slug}`).join("\n")
+      yield write({
+        ctx,
+        content: csv,
+        slug: "data" as FullSlug,
+        ext: ".csv",
+      })
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Copy Filtered Files">
+    ```typescript
+    async *emit(ctx, content) {
+      for (const [_, file] of content) {
+        // Only copy files with specific tag
+        const tags = file.data.frontmatter?.tags || []
+        if (!tags.includes("special")) continue
+        
+        const src = file.data.filePath!
+        const dest = path.join(ctx.argv.output, "special", path.basename(src))
+        await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+        await fs.promises.copyFile(src, dest)
+        yield dest as FilePath
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Tips
+
+<Check>
+  **Use async generators** - Allows parallel processing
+</Check>
+
+<Check>
+  **Implement partialEmit** - Faster development rebuilds
+</Check>
+
+<Check>
+  **Cache expensive operations** - Store results between builds
+</Check>
+
+<Check>
+  **Comment out slow emitters** - Skip CustomOgImages during development
+</Check>
+
+## Debugging Emitters
+
+```typescript
+export const DebugEmitter: QuartzEmitterPlugin = () => {
+  return {
+    name: "DebugEmitter",
+    async *emit(ctx, content) {
+      console.log(`Processing ${content.length} files`)
+      
+      for (const [tree, file] of content) {
+        console.log(`- ${file.data.slug}`)
+        console.log(`  Title: ${file.data.frontmatter?.title}`)
+        console.log(`  Tags: ${file.data.frontmatter?.tags?.join(", ")}`)
+      }
+      
+      // Don't actually emit anything
+      return []
+    },
+  }
+}
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Plugin Overview" icon="puzzle-piece" href="./overview">
+    Understanding the plugin system
+  </Card>
+  <Card title="Transformer Plugins" icon="wand-magic-sparkles" href="./transformers">
+    Process content before emission
+  </Card>
+  <Card title="Filter Plugins" icon="filter" href="./filters">
+    Control what gets emitted
+  </Card>
+  <Card title="VFile Documentation" icon="book" href="https://github.com/vfile/vfile">
+    Understanding file data structure
+  </Card>
+</CardGroup>

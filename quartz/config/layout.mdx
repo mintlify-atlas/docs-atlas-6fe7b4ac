@@ -1,0 +1,444 @@
+---
+title: Layout Configuration
+description: Organize components and define page structure in quartz.layout.ts
+---
+
+Quartz layouts are configured in `quartz.layout.ts`, which defines component placement across different page types. Layouts control where components like navigation, table of contents, and search appear on your pages.
+
+## Layout Structure
+
+Quartz supports two layout configurations:
+
+1. **Shared Layout** - Components that appear on all pages
+2. **Page Layouts** - Components specific to page types (content pages vs. list pages)
+
+```typescript quartz.layout.ts
+import { PageLayout, SharedLayout } from "./quartz/cfg"
+import * as Component from "./quartz/components"
+
+// Shared across all pages
+export const sharedPageComponents: SharedLayout = {
+  head: Component.Head(),
+  header: [],
+  afterBody: [],
+  footer: Component.Footer(),
+}
+
+// For single content pages
+export const defaultContentPageLayout: PageLayout = {
+  beforeBody: [/* ... */],
+  left: [/* ... */],
+  right: [/* ... */],
+}
+
+// For list pages (tags, folders)
+export const defaultListPageLayout: PageLayout = {
+  beforeBody: [/* ... */],
+  left: [/* ... */],
+  right: [/* ... */],
+}
+```
+
+## Shared Layout
+
+Components in `SharedLayout` appear on every page of your site.
+
+### Structure
+
+<ParamField path="head" type="Component">
+  Content injected into the `<head>` tag (meta tags, scripts, styles)
+</ParamField>
+
+<ParamField path="header" type="Component[]">
+  Components displayed at the top of every page
+</ParamField>
+
+<ParamField path="afterBody" type="Component[]">
+  Components displayed after the main content
+</ParamField>
+
+<ParamField path="footer" type="Component">
+  Footer component at the bottom of every page
+</ParamField>
+
+### Example
+
+```typescript quartz.layout.ts
+export const sharedPageComponents: SharedLayout = {
+  head: Component.Head(),
+  header: [],
+  afterBody: [],
+  footer: Component.Footer({
+    links: {
+      GitHub: "https://github.com/jackyzha0/quartz",
+      "Discord Community": "https://discord.gg/cRFFHYye7t",
+    },
+  }),
+}
+```
+
+<Note>
+  The `Head` component is required for proper page functionality. Always include it in the shared layout.
+</Note>
+
+## Page Layouts
+
+Page layouts define component placement for specific page types. Quartz uses a three-column grid:
+
+- **left** - Left sidebar (navigation, search)
+- **center** - Main content area
+- **right** - Right sidebar (table of contents, graph)
+
+Additionally, `beforeBody` components appear above the main content.
+
+### Content Page Layout
+
+Used for individual pages like notes and articles.
+
+```typescript quartz.layout.ts
+export const defaultContentPageLayout: PageLayout = {
+  beforeBody: [
+    Component.ConditionalRender({
+      component: Component.Breadcrumbs(),
+      condition: (page) => page.fileData.slug !== "index",
+    }),
+    Component.ArticleTitle(),
+    Component.ContentMeta(),
+    Component.TagList(),
+  ],
+  left: [
+    Component.PageTitle(),
+    Component.MobileOnly(Component.Spacer()),
+    Component.Flex({
+      components: [
+        {
+          Component: Component.Search(),
+          grow: true,
+        },
+        { Component: Component.Darkmode() },
+        { Component: Component.ReaderMode() },
+      ],
+    }),
+    Component.Explorer(),
+  ],
+  right: [
+    Component.Graph(),
+    Component.DesktopOnly(Component.TableOfContents()),
+    Component.Backlinks(),
+  ],
+}
+```
+
+#### Component Breakdown
+
+**beforeBody** (above content):
+- `Breadcrumbs` - Navigation path (hidden on index page)
+- `ArticleTitle` - Page title heading
+- `ContentMeta` - Metadata (dates, reading time)
+- `TagList` - Tags associated with the page
+
+**left** (left sidebar):
+- `PageTitle` - Site title/logo
+- `Spacer` - Spacing on mobile devices
+- `Flex` - Horizontal layout containing Search, Darkmode toggle, and ReaderMode
+- `Explorer` - File tree navigation
+
+**right** (right sidebar):
+- `Graph` - Interactive graph view of connections
+- `TableOfContents` - Page outline (desktop only)
+- `Backlinks` - Pages linking to this page
+
+### List Page Layout
+
+Used for tag pages, folder indexes, and other collection views.
+
+```typescript quartz.layout.ts
+export const defaultListPageLayout: PageLayout = {
+  beforeBody: [
+    Component.Breadcrumbs(),
+    Component.ArticleTitle(),
+    Component.ContentMeta(),
+  ],
+  left: [
+    Component.PageTitle(),
+    Component.MobileOnly(Component.Spacer()),
+    Component.Flex({
+      components: [
+        {
+          Component: Component.Search(),
+          grow: true,
+        },
+        { Component: Component.Darkmode() },
+      ],
+    }),
+    Component.Explorer(),
+  ],
+  right: [],
+}
+```
+
+<Note>
+  List pages typically have an empty right sidebar to provide more space for the content list.
+</Note>
+
+## Layout Components
+
+### Conditional Rendering
+
+Show or hide components based on page properties:
+
+```typescript
+Component.ConditionalRender({
+  component: Component.Breadcrumbs(),
+  condition: (page) => page.fileData.slug !== "index",
+})
+```
+
+<ParamField path="component" type="Component" required>
+  The component to conditionally render
+</ParamField>
+
+<ParamField path="condition" type="(page: QuartzPluginData) => boolean" required>
+  Function that returns `true` to show the component, `false` to hide it
+</ParamField>
+
+### Responsive Components
+
+Control component visibility by screen size:
+
+<Tabs>
+  <Tab title="Desktop Only">
+    ```typescript
+    Component.DesktopOnly(Component.TableOfContents())
+    ```
+    Only visible on desktop screens (> 1024px)
+  </Tab>
+  <Tab title="Mobile Only">
+    ```typescript
+    Component.MobileOnly(Component.Spacer())
+    ```
+    Only visible on mobile screens (≤ 1024px)
+  </Tab>
+</Tabs>
+
+### Flex Layout
+
+Arrange components horizontally:
+
+```typescript
+Component.Flex({
+  components: [
+    {
+      Component: Component.Search(),
+      grow: true,
+    },
+    { Component: Component.Darkmode() },
+    { Component: Component.ReaderMode() },
+  ],
+})
+```
+
+<ParamField path="components" type="FlexComponent[]" required>
+  Array of components with optional `grow` property
+</ParamField>
+
+<ParamField path="grow" type="boolean" default={false}>
+  If `true`, the component expands to fill available space
+</ParamField>
+
+## Common Components
+
+### Navigation
+
+<ResponseField name="PageTitle" type="Component">
+  Site title/logo, typically links to the homepage
+</ResponseField>
+
+<ResponseField name="Breadcrumbs" type="Component">
+  Navigation path showing the page hierarchy
+</ResponseField>
+
+<ResponseField name="Explorer" type="Component">
+  File tree navigation for browsing content structure
+</ResponseField>
+
+### Content
+
+<ResponseField name="ArticleTitle" type="Component">
+  Page heading (h1) displaying the page title
+</ResponseField>
+
+<ResponseField name="ContentMeta" type="Component">
+  Metadata like creation date, modification date, and reading time
+</ResponseField>
+
+<ResponseField name="TagList" type="Component">
+  List of tags associated with the current page
+</ResponseField>
+
+<ResponseField name="TableOfContents" type="Component">
+  Outline of page headings for quick navigation
+</ResponseField>
+
+### Discovery
+
+<ResponseField name="Search" type="Component">
+  Full-text search across all content
+</ResponseField>
+
+<ResponseField name="Graph" type="Component">
+  Interactive visualization of page connections
+</ResponseField>
+
+<ResponseField name="Backlinks" type="Component">
+  List of pages that link to the current page
+</ResponseField>
+
+### Utilities
+
+<ResponseField name="Darkmode" type="Component">
+  Toggle between light and dark color schemes
+</ResponseField>
+
+<ResponseField name="ReaderMode" type="Component">
+  Distraction-free reading mode
+</ResponseField>
+
+<ResponseField name="Spacer" type="Component">
+  Empty space for layout purposes
+</ResponseField>
+
+## Customizing Layouts
+
+### Adding a Component
+
+To add a component to your layout:
+
+1. Import the component (already done via `import * as Component`)
+2. Add it to the appropriate section:
+
+```typescript
+export const defaultContentPageLayout: PageLayout = {
+  beforeBody: [
+    Component.ArticleTitle(),
+    Component.ContentMeta(),
+    // Add your component here
+  ],
+  left: [/* ... */],
+  right: [/* ... */],
+}
+```
+
+### Reordering Components
+
+Simply change the order in the array:
+
+```typescript
+beforeBody: [
+  Component.ArticleTitle(),      // Appears first
+  Component.TagList(),           // Then tags
+  Component.ContentMeta(),       // Then metadata
+]
+```
+
+### Removing a Component
+
+Delete or comment out the component:
+
+```typescript
+left: [
+  Component.PageTitle(),
+  // Component.Explorer(),  // Removed file tree
+  Component.Search(),
+]
+```
+
+## Layout Examples
+
+<AccordionGroup>
+  <Accordion title="Minimal Layout">
+    ```typescript
+    export const defaultContentPageLayout: PageLayout = {
+      beforeBody: [
+        Component.ArticleTitle(),
+      ],
+      left: [
+        Component.PageTitle(),
+        Component.Search(),
+      ],
+      right: [],
+    }
+    ```
+    Focused on content with minimal distractions.
+  </Accordion>
+  
+  <Accordion title="Documentation Layout">
+    ```typescript
+    export const defaultContentPageLayout: PageLayout = {
+      beforeBody: [
+        Component.Breadcrumbs(),
+        Component.ArticleTitle(),
+      ],
+      left: [
+        Component.PageTitle(),
+        Component.Search(),
+        Component.Explorer(),
+      ],
+      right: [
+        Component.TableOfContents(),
+      ],
+    }
+    ```
+    Ideal for structured documentation with clear navigation.
+  </Accordion>
+  
+  <Accordion title="Digital Garden Layout">
+    ```typescript
+    export const defaultContentPageLayout: PageLayout = {
+      beforeBody: [
+        Component.ArticleTitle(),
+        Component.TagList(),
+        Component.ContentMeta(),
+      ],
+      left: [
+        Component.PageTitle(),
+        Component.Search(),
+        Component.Explorer(),
+      ],
+      right: [
+        Component.Graph(),
+        Component.Backlinks(),
+      ],
+    }
+    ```
+    Emphasizes connections and relationships between notes.
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Keep it Balanced" icon="scale-balanced">
+    Distribute components evenly across left and right sidebars to avoid overwhelming one side.
+  </Card>
+  <Card title="Mobile First" icon="mobile">
+    Use `MobileOnly` and `DesktopOnly` to ensure good experience on all devices.
+  </Card>
+  <Card title="Content Priority" icon="star">
+    Place most important navigation in the left sidebar where users look first.
+  </Card>
+  <Card title="Consistent Layouts" icon="clone">
+    Maintain similar layouts between content and list pages for familiarity.
+  </Card>
+</CardGroup>
+
+## Related Configuration
+
+<CardGroup cols={2}>
+  <Card title="Site Settings" icon="gear" href="/quartz/config/site-settings">
+    Configure page title, locale, and behavior
+  </Card>
+  <Card title="Theme Configuration" icon="palette" href="/quartz/config/theme">
+    Customize colors, fonts, and visual styling
+  </Card>
+</CardGroup>

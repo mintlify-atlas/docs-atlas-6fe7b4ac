@@ -1,0 +1,255 @@
+---
+title: Site Settings
+description: Configure page titles, locale, base URL, and site behavior options
+---
+
+Site settings are configured in the `configuration` section of `quartz.config.ts`. These settings control the fundamental behavior and metadata of your Quartz site.
+
+## Basic Settings
+
+### Page Title
+
+The main title of your site, displayed in the browser tab and site header.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    pageTitle: "Siebenlande",
+    pageTitleSuffix: " - Siebenlande",
+  },
+}
+```
+
+<ParamField path="pageTitle" type="string" required>
+  The primary site title. Example: `"My Digital Garden"`
+</ParamField>
+
+<ParamField path="pageTitleSuffix" type="string">
+  Appended to individual page titles. Example: `" - Siebenlande"` results in "Page Name - Siebenlande"
+</ParamField>
+
+### Locale and Region
+
+Set the language and regional settings for date formatting and content.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    locale: "de-DE",
+  },
+}
+```
+
+<ParamField path="locale" type="string" default="en-US">
+  BCP 47 language tag for localization. Common values:
+  - `"en-US"` - English (United States)
+  - `"de-DE"` - German (Germany)
+  - `"fr-FR"` - French (France)
+  - `"es-ES"` - Spanish (Spain)
+  - `"ja-JP"` - Japanese (Japan)
+</ParamField>
+
+### Base URL
+
+Your site's domain name, used for generating absolute URLs.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    baseUrl: "siebenlande.de",
+  },
+}
+```
+
+<ParamField path="baseUrl" type="string" required>
+  Domain without protocol. Example: `"example.com"` or `"docs.example.com"`
+</ParamField>
+
+<Warning>
+  Do not include `https://` or trailing slashes in `baseUrl`. Use only the domain name.
+</Warning>
+
+## Behavior Settings
+
+### Single Page Application (SPA)
+
+Enable client-side routing for faster navigation between pages.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    enableSPA: true,
+  },
+}
+```
+
+<ParamField path="enableSPA" type="boolean" default={true}>
+  When enabled, page transitions happen without full page reloads, creating a smoother browsing experience.
+</ParamField>
+
+### Popovers
+
+Show content previews when hovering over internal links.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    enablePopovers: true,
+  },
+}
+```
+
+<ParamField path="enablePopovers" type="boolean" default={true}>
+  Display inline previews of linked pages on hover. Enhances content discoverability.
+</ParamField>
+
+## Content Settings
+
+### Ignore Patterns
+
+Exclude specific files or folders from the build process.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    ignorePatterns: ["private", "templates", ".obsidian"],
+  },
+}
+```
+
+<ParamField path="ignorePatterns" type="string[]" default={[]}>
+  Array of folder or file names to exclude. Useful for:
+  - Private notes
+  - Template files
+  - Editor-specific folders (`.obsidian`, `.vscode`)
+  - Draft content
+</ParamField>
+
+### Default Date Type
+
+Choose which date to display by default on content pages.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    defaultDateType: "modified",
+  },
+}
+```
+
+<ParamField path="defaultDateType" type="'created' | 'modified'" default="created">
+  - `"created"` - Show when the content was first created
+  - `"modified"` - Show the last modification date
+</ParamField>
+
+## Analytics
+
+Integrate analytics providers to track site usage.
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    analytics: {
+      provider: "plausible",
+    },
+    // or disable analytics
+    analytics: null,
+  },
+}
+```
+
+<ParamField path="analytics" type="AnalyticsConfig | null" default={null}>
+  Analytics configuration object or `null` to disable.
+</ParamField>
+
+<Tabs>
+  <Tab title="Plausible">
+    ```typescript
+    analytics: {
+      provider: "plausible",
+    }
+    ```
+    Uses [Plausible Analytics](https://plausible.io/) for privacy-friendly tracking.
+  </Tab>
+  <Tab title="Google Analytics">
+    ```typescript
+    analytics: {
+      provider: "google",
+      tagId: "G-XXXXXXXXXX",
+    }
+    ```
+    Requires a Google Analytics measurement ID.
+  </Tab>
+  <Tab title="Disabled">
+    ```typescript
+    analytics: null
+    ```
+    No analytics tracking.
+  </Tab>
+</Tabs>
+
+## Complete Example
+
+Here's a full site settings configuration from the Siebenlande project:
+
+```typescript quartz.config.ts
+import { QuartzConfig } from "./quartz/cfg"
+
+const config: QuartzConfig = {
+  configuration: {
+    pageTitle: "Siebenlande",
+    pageTitleSuffix: " - Siebenlande",
+    enableSPA: true,
+    enablePopovers: true,
+    analytics: null,
+    locale: "de-DE",
+    baseUrl: "siebenlande.de",
+    ignorePatterns: ["private", "templates", ".obsidian"],
+    defaultDateType: "modified",
+    theme: {
+      // See theme configuration
+    },
+  },
+}
+
+export default config
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Choosing a locale">
+    Match your `locale` to your primary content language. This affects:
+    - Date and time formatting
+    - Number formatting
+    - Sorting behavior
+    - Screen reader announcements
+  </Accordion>
+  
+  <Accordion title="SPA vs. traditional navigation">
+    Keep `enableSPA: true` for most sites. Disable only if:
+    - You have complex JavaScript that doesn't handle SPA transitions
+    - You need traditional server-side routing
+    - You're experiencing issues with client-side navigation
+  </Accordion>
+  
+  <Accordion title="Ignore patterns strategy">
+    Common patterns to ignore:
+    - `"private"` - Personal notes
+    - `"templates"` - Template files
+    - `".obsidian"` - Obsidian app data
+    - `"drafts"` - Work in progress
+    - `"archive"` - Old content
+  </Accordion>
+</AccordionGroup>
+
+## Related Configuration
+
+<CardGroup cols={2}>
+  <Card title="Theme Configuration" icon="palette" href="/quartz/config/theme">
+    Customize colors, fonts, and visual styling
+  </Card>
+  <Card title="Layout Configuration" icon="layout" href="/quartz/config/layout">
+    Organize components and page structure
+  </Card>
+</CardGroup>

@@ -1,0 +1,206 @@
+---
+title: CLI Commands Overview
+description: Complete reference for all Quartz CLI commands and their usage
+---
+
+Quartz provides a comprehensive command-line interface for managing your static site. All commands are executed using the `npx quartz` prefix.
+
+## Available Commands
+
+Quartz CLI offers five main commands for different stages of your workflow:
+
+<CardGroup cols={2}>
+  <Card title="create" icon="wand-magic-sparkles" href="/quartz/cli/create">
+    Initialize a new Quartz project with content setup options
+  </Card>
+  <Card title="build" icon="hammer" href="/quartz/cli/build">
+    Build your Quartz site into static HTML files
+  </Card>
+  <Card title="sync" icon="arrows-rotate" href="/quartz/cli/sync">
+    Synchronize your content with GitHub repositories
+  </Card>
+  <Card title="update" icon="arrow-up" href="/quartz/cli/update">
+    Update Quartz to the latest version
+  </Card>
+  <Card title="restore" icon="clock-rotate-left" href="/quartz/cli/restore">
+    Restore your content folder from cache
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+<Steps>
+  <Step title="Initialize Quartz">
+    ```bash
+    npx quartz create
+    ```
+    Set up your Quartz project with interactive prompts for content strategy.
+  </Step>
+  
+  <Step title="Build and preview">
+    ```bash
+    npx quartz build --serve
+    ```
+    Build your site and start a local development server.
+  </Step>
+  
+  <Step title="Sync to GitHub">
+    ```bash
+    npx quartz sync
+    ```
+    Commit and push your changes to your repository.
+  </Step>
+</Steps>
+
+## Global Options
+
+These options are available across most Quartz commands:
+
+<ParamField path="--directory" type="string" default="content">
+  Directory to look for content files. Can be specified as an absolute or relative path.
+  
+  **Alias:** `-d`
+  
+  ```bash
+  npx quartz build --directory ./my-notes
+  ```
+</ParamField>
+
+<ParamField path="--verbose" type="boolean" default="false">
+  Print out extra logging information for debugging purposes.
+  
+  **Alias:** `-v`
+  
+  ```bash
+  npx quartz build --verbose
+  ```
+</ParamField>
+
+## Command Reference
+
+### create
+
+Initialize a new Quartz installation with content setup options.
+
+```bash
+npx quartz create [options]
+```
+
+The create command initializes a new Quartz project with various setup strategies.
+
+### build
+
+Build your Quartz site into a bundle of static HTML files.
+
+```bash
+npx quartz build [options]
+```
+
+[Learn more →](/quartz/cli/build)
+
+### sync
+
+Synchronize your Quartz content to and from GitHub.
+
+```bash
+npx quartz sync [options]
+```
+
+[Learn more →](/quartz/cli/sync)
+
+### update
+
+Pull the latest Quartz framework updates from upstream.
+
+```bash
+npx quartz update [options]
+```
+
+<Info>
+This command backs up your content, pulls updates from the upstream Quartz repository, and restores your content. You may need to resolve git conflicts if you've customized components or plugins.
+</Info>
+
+### restore
+
+Restore your content folder from the cache.
+
+```bash
+npx quartz restore [options]
+```
+
+<Warning>
+This command is typically used after an interrupted `update` or `sync` operation to recover your content from the cache.
+</Warning>
+
+## Version Information
+
+Check the installed Quartz version:
+
+```bash
+npx quartz --version
+```
+
+## Getting Help
+
+Display help information for any command:
+
+```bash
+# General help
+npx quartz --help
+
+# Command-specific help
+npx quartz build --help
+npx quartz sync --help
+```
+
+## Common Workflows
+
+### Local Development
+
+```bash
+# Start development server with hot reload
+npx quartz build --serve
+```
+
+This starts a local server at `http://localhost:8080` and automatically rebuilds when you make changes.
+
+### Production Build
+
+```bash
+# Build for production
+npx quartz build
+
+# The output will be in the ./public directory by default
+```
+
+### Deploy Workflow
+
+```bash
+# Build, commit, and push changes
+npx quartz build
+npx quartz sync
+```
+
+## Environment
+
+All commands run in the current working directory and expect a valid Quartz project structure with:
+
+- `quartz.config.ts` - Configuration file
+- `content/` - Content directory (or custom path via `--directory`)
+- `quartz/` - Framework directory
+
+## Exit Codes
+
+- `0` - Success
+- `1` - Error occurred (check console output for details)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Build Command" icon="hammer" href="/quartz/cli/build">
+    Learn about build options and local development
+  </Card>
+  <Card title="Sync Command" icon="arrows-rotate" href="/quartz/cli/sync">
+    Explore git synchronization features
+  </Card>
+</CardGroup>

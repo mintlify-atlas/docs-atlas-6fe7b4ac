@@ -1,0 +1,413 @@
+---
+title: Sync Command
+description: Synchronize your Quartz content and changes with GitHub repositories
+---
+
+The `sync` command manages bidirectional synchronization between your local Quartz content and GitHub, handling commits, pulls, and pushes automatically.
+
+## Basic Usage
+
+```bash
+npx quartz sync [options]
+```
+
+By default, this command:
+1. Commits your local changes with a timestamp
+2. Pulls updates from your GitHub repository
+3. Pushes your changes to GitHub
+
+## Command Options
+
+### Commit Options
+
+<ParamField path="--commit" type="boolean" default="true">
+  Create a git commit for your unsaved changes.
+  
+  ```bash
+  npx quartz sync --commit
+  ```
+  
+  <Info>
+  When enabled, the sync command stages all changes and creates a commit with a timestamp before pulling or pushing.
+  </Info>
+  
+  To skip committing:
+  ```bash
+  npx quartz sync --no-commit
+  ```
+</ParamField>
+
+<ParamField path="--message" type="string">
+  Custom commit message (overrides the default timestamp message).
+  
+  **Alias:** `-m`
+  
+  ```bash
+  npx quartz sync --message "Updated blog posts"
+  ```
+  
+  Default message format: `Quartz sync: Jan 15, 2026, 2:30 PM`
+</ParamField>
+
+### Remote Sync Options
+
+<ParamField path="--pull" type="boolean" default="true">
+  Pull updates from your Quartz fork before pushing.
+  
+  ```bash
+  npx quartz sync --pull
+  ```
+  
+  <Warning>
+  You may need to resolve git conflicts if remote changes conflict with your local modifications.
+  </Warning>
+  
+  To skip pulling:
+  ```bash
+  npx quartz sync --no-pull
+  ```
+</ParamField>
+
+<ParamField path="--push" type="boolean" default="true">
+  Push updates to your Quartz fork.
+  
+  ```bash
+  npx quartz sync --push
+  ```
+  
+  The push uses force-with-lease to safely update the remote branch.
+  
+  To skip pushing:
+  ```bash
+  npx quartz sync --no-push
+  ```
+</ParamField>
+
+### Common Options
+
+<ParamField path="--directory" type="string" default="content">
+  Directory containing your content files.
+  
+  **Alias:** `-d`
+  
+  ```bash
+  npx quartz sync --directory ./my-notes
+  ```
+</ParamField>
+
+<ParamField path="--verbose" type="boolean" default="false">
+  Print extra logging information.
+  
+  **Alias:** `-v`
+  
+  ```bash
+  npx quartz sync --verbose
+  ```
+</ParamField>
+
+## Examples
+
+### Full Sync (Default)
+
+Commit, pull, and push all changes:
+
+```bash
+npx quartz sync
+```
+
+This performs the complete workflow with automatic commit message.
+
+### Custom Commit Message
+
+Sync with a descriptive commit message:
+
+<CodeGroup>
+```bash Short Message
+npx quartz sync -m "Add new article"
+```
+
+```bash Detailed Message
+npx quartz sync --message "Add tutorial on Quartz plugins"
+```
+</CodeGroup>
+
+### Pull Only
+
+Get updates from GitHub without committing or pushing:
+
+```bash
+npx quartz sync --no-commit --no-push
+```
+
+### Push Only
+
+Push local changes without pulling:
+
+```bash
+npx quartz sync --no-pull
+```
+
+<Warning>
+Skipping pull may cause push failures if the remote has newer changes.
+</Warning>
+
+### Commit Without Sync
+
+Create a commit without pulling or pushing:
+
+```bash
+npx quartz sync --no-pull --no-push
+```
+
+## Sync Workflow
+
+The sync command executes these steps in order:
+
+<Steps>
+  <Step title="Content Backup">
+    Backs up your content folder to `.quartz-cache/content-cache` to ensure no data loss during the sync process.
+  </Step>
+  
+  <Step title="Symlink Handling">
+    If your content folder is a symlink:
+    - Detects the symlink
+    - Dereferences it to get the actual content
+    - Creates a temporary copy for committing
+    - Restores the symlink after commit
+    
+    ```bash
+    # Works seamlessly with symlinked content
+    ln -s ~/Documents/Notes content
+    npx quartz sync
+    ```
+  </Step>
+  
+  <Step title="Commit Creation (if --commit)">
+    Stages all changes and creates a commit:
+    ```bash
+    git add .
+    git commit -m "Quartz sync: <timestamp>"
+    ```
+  </Step>
+  
+  <Step title="Pull Updates (if --pull)">
+    Pulls changes from the origin remote:
+    ```bash
+    git pull origin <current-branch>
+    ```
+    
+    May require conflict resolution if local and remote changes overlap.
+  </Step>
+  
+  <Step title="Push Changes (if --push)">
+    Pushes to the current branch with force-with-lease:
+    ```bash
+    git push -uf origin <current-branch>
+    ```
+  </Step>
+  
+  <Step title="Content Restoration">
+    Restores your content folder from the cache, preserving symlinks if they existed.
+  </Step>
+</Steps>
+
+## Symlink Support
+
+Quartz sync intelligently handles symlinked content folders:
+
+```bash
+# Create a symlink to your notes
+ln -s ~/Dropbox/Notes content
+
+# Sync works automatically
+npx quartz sync
+```
+
+The command will:
+- Detect the symlink
+- Temporarily dereference it for git operations
+- Restore the symlink after committing
+- Preserve timestamps and permissions
+
+<Info>
+This allows you to keep your content in cloud storage (Dropbox, iCloud, etc.) while still using Quartz.
+</Info>
+
+## Git Configuration
+
+The sync command uses these git remotes:
+
+- **`origin`**: Your personal Quartz repository fork
+- **`upstream`**: The official Quartz repository (for updates)
+
+Ensure your origin is configured:
+
+```bash
+git remote -v
+```
+
+Expected output:
+```
+origin    https://github.com/yourusername/quartz.git (fetch)
+origin    https://github.com/yourusername/quartz.git (push)
+upstream  https://github.com/jackyzha0/quartz.git (fetch)
+upstream  https://github.com/jackyzha0/quartz.git (push)
+```
+
+## Common Workflows
+
+### Daily Content Updates
+
+```bash
+# Make changes to your content
+nano content/blog/my-post.md
+
+# Sync to GitHub
+npx quartz sync -m "Update blog post"
+```
+
+### Sync After Batch Edits
+
+```bash
+# Edit multiple files
+# ...
+
+# Sync all changes at once
+npx quartz sync -m "Weekly content update"
+```
+
+### Collaborative Workflow
+
+```bash
+# Pull latest changes from team
+npx quartz sync --no-commit --no-push
+
+# Make your edits
+# ...
+
+# Commit and push your changes
+npx quartz sync -m "Add my contributions"
+```
+
+## Troubleshooting
+
+### Merge Conflicts
+
+If you encounter merge conflicts during pull:
+
+<Steps>
+  <Step title="Resolve conflicts manually">
+    ```bash
+    # Edit conflicting files
+    nano content/conflicting-file.md
+    
+    # Stage resolved files
+    git add content/conflicting-file.md
+    ```
+  </Step>
+  
+  <Step title="Complete the merge">
+    ```bash
+    git commit -m "Resolve merge conflicts"
+    ```
+  </Step>
+  
+  <Step title="Push changes">
+    ```bash
+    npx quartz sync --no-commit --no-pull
+    ```
+  </Step>
+</Steps>
+
+### Push Rejected
+
+If your push is rejected:
+
+```bash
+# Pull first to get remote changes
+npx quartz sync --no-commit --no-push
+
+# Then push
+npx quartz sync --no-commit --no-pull
+```
+
+### Symlink Issues
+
+If symlink dereferencing fails:
+
+<Warning>
+Ensure the symlink target is accessible and contains valid content.
+</Warning>
+
+```bash
+# Check symlink target
+ls -l content
+
+# Verify target exists
+readlink content
+```
+
+## Advanced Usage
+
+### Selective Sync Operations
+
+<AccordionGroup>
+  <Accordion title="Commit only (no remote sync)">
+    ```bash
+    npx quartz sync --no-pull --no-push
+    ```
+    Creates a local commit without interacting with GitHub.
+  </Accordion>
+  
+  <Accordion title="Pull without committing">
+    ```bash
+    npx quartz sync --no-commit --no-push
+    ```
+    Gets latest changes without committing local work.
+  </Accordion>
+  
+  <Accordion title="Push without pulling">
+    ```bash
+    npx quartz sync --no-pull
+    ```
+    Pushes local commits (risky if remote has changes).
+  </Accordion>
+</AccordionGroup>
+
+### Integration with CI/CD
+
+```bash
+# In your deployment script
+npx quartz build
+npx quartz sync --message "Deploy: $(date)"
+```
+
+## Safety Features
+
+<Note>
+The sync command includes several safety mechanisms:
+
+- **Content caching**: Your content is backed up before any git operations
+- **Force-with-lease**: Prevents accidental overwrites of remote changes
+- **Symlink preservation**: Original symlinks are restored after operations
+- **Timestamp preservation**: File timestamps are maintained during operations
+</Note>
+
+## Source Code Reference
+
+The sync command implementation:
+- `quartz/bootstrap-cli.mjs:32` - Command definition
+- `quartz/cli/handlers.js:554` - Sync handler function
+- `quartz/cli/args.js:37` - Argument definitions
+- `quartz/cli/helpers.js:24` - Content stashing utilities
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Build Command" icon="hammer" href="/quartz/cli/build">
+    Build your site before syncing
+  </Card>
+  <Card title="Deployment" icon="rocket" href="/quartz/deployment">
+    Deploy your Quartz site to hosting platforms
+  </Card>
+</CardGroup>

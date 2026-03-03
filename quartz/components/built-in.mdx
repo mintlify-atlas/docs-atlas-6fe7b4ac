@@ -1,0 +1,598 @@
+---
+title: Built-in Components
+description: Complete reference for all built-in Quartz components and their configuration
+---
+
+Quartz comes with a comprehensive set of built-in components. This page documents all available components, their options, and usage examples.
+
+## Navigation Components
+
+### Explorer
+
+A file tree navigation component that displays your vault's folder structure.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Explorer.tsx
+export interface Options {
+  title?: string
+  folderDefaultState: "collapsed" | "open"
+  folderClickBehavior: "collapse" | "link"
+  useSavedState: boolean
+  sortFn: (a: FileTrieNode, b: FileTrieNode) => number
+  filterFn: (node: FileTrieNode) => boolean
+  mapFn: (node: FileTrieNode) => void
+  order: OrderEntries[]
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="title" type="string" default="Explorer">
+  Custom title for the explorer section
+</ParamField>
+
+<ParamField path="folderDefaultState" type="'collapsed' | 'open'" default="collapsed">
+  Whether folders should be collapsed or open by default
+</ParamField>
+
+<ParamField path="folderClickBehavior" type="'collapse' | 'link'" default="link">
+  What happens when you click a folder:
+  - `collapse` - Toggles folder open/closed
+  - `link` - Navigates to folder page
+</ParamField>
+
+<ParamField path="useSavedState" type="boolean" default="true">
+  Remember folder open/closed state between page visits
+</ParamField>
+
+<ParamField path="sortFn" type="function">
+  Custom sorting function for files and folders. Default sorts folders first, then alphabetically.
+</ParamField>
+
+<ParamField path="filterFn" type="function">
+  Filter which files/folders to show. Default hides the "tags" folder.
+</ParamField>
+
+<ParamField path="mapFn" type="function">
+  Transform file tree nodes before display
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Explorer({
+  title: "File Explorer",
+  folderDefaultState: "open",
+  folderClickBehavior: "collapse",
+  useSavedState: true,
+  filterFn: (node) => node.name !== "private",
+})
+```
+
+### Search
+
+Full-text search with preview functionality.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Search.tsx
+export interface SearchOptions {
+  enablePreview: boolean
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="enablePreview" type="boolean" default="true">
+  Show content preview in search results
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Search({
+  enablePreview: true,
+})
+```
+
+### Graph
+
+Interactive visualization of page connections and links.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Graph.tsx
+export interface D3Config {
+  drag: boolean
+  zoom: boolean
+  depth: number
+  scale: number
+  repelForce: number
+  centerForce: number
+  linkDistance: number
+  fontSize: number
+  opacityScale: number
+  removeTags: string[]
+  showTags: boolean
+  focusOnHover?: boolean
+  enableRadial?: boolean
+}
+
+interface GraphOptions {
+  localGraph: Partial<D3Config> | undefined
+  globalGraph: Partial<D3Config> | undefined
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+The Graph component has separate configs for local (current page) and global (all pages) views.
+
+<ParamField path="localGraph.depth" type="number" default="1">
+  How many hops away from the current page to show
+</ParamField>
+
+<ParamField path="localGraph.scale" type="number" default="1.1">
+  Zoom level for the graph
+</ParamField>
+
+<ParamField path="localGraph.repelForce" type="number" default="0.5">
+  How strongly nodes push away from each other
+</ParamField>
+
+<ParamField path="localGraph.centerForce" type="number" default="0.3">
+  How strongly nodes are pulled toward the center
+</ParamField>
+
+<ParamField path="localGraph.linkDistance" type="number" default="30">
+  Target distance between connected nodes
+</ParamField>
+
+<ParamField path="globalGraph.enableRadial" type="boolean" default="true">
+  Enable radial layout for global graph
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Graph({
+  localGraph: {
+    depth: 2,
+    scale: 1.2,
+    repelForce: 0.8,
+    showTags: true,
+  },
+  globalGraph: {
+    depth: -1, // Show all nodes
+    enableRadial: true,
+    focusOnHover: true,
+  },
+})
+```
+
+### TableOfContents
+
+Automatic table of contents from page headings.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/TableOfContents.tsx
+interface Options {
+  layout: "modern" | "legacy"
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="layout" type="'modern' | 'legacy'" default="modern">
+  Visual style:
+  - `modern` - Collapsible with smooth interactions
+  - `legacy` - Simple `<details>` element
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.TableOfContents({
+  layout: "modern",
+})
+```
+
+### Breadcrumbs
+
+Hierarchical navigation trail showing the current page's location.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Breadcrumbs.tsx
+interface BreadcrumbOptions {
+  spacerSymbol: string
+  rootName: string
+  resolveFrontmatterTitle: boolean
+  showCurrentPage: boolean
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="spacerSymbol" type="string" default="❯">
+  Symbol between breadcrumb items
+</ParamField>
+
+<ParamField path="rootName" type="string" default="Start">
+  Display name for the root/home page
+</ParamField>
+
+<ParamField path="resolveFrontmatterTitle" type="boolean" default="true">
+  Use frontmatter title for folder names (may impact performance)
+</ParamField>
+
+<ParamField path="showCurrentPage" type="boolean" default="true">
+  Include the current page in breadcrumbs
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Breadcrumbs({
+  spacerSymbol: ">",
+  rootName: "Home",
+  showCurrentPage: false,
+})
+```
+
+### Backlinks
+
+Shows all pages that link to the current page.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Backlinks.tsx
+interface BacklinksOptions {
+  hideWhenEmpty: boolean
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="hideWhenEmpty" type="boolean" default="true">
+  Hide the backlinks section when there are no backlinks
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Backlinks({
+  hideWhenEmpty: false,
+})
+```
+
+## Content Components
+
+### ArticleTitle
+
+Displays the page title as an `<h1>` heading. No configuration options.
+
+```typescript quartz.layout.ts
+Component.ArticleTitle()
+```
+
+### PageTitle
+
+Site title that links back to home. No configuration options.
+
+```typescript quartz.layout.ts
+Component.PageTitle()
+```
+
+### ContentMeta
+
+Shows publication date and optional reading time.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/ContentMeta.tsx
+interface ContentMetaOptions {
+  showReadingTime: boolean
+  showComma: boolean
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="showReadingTime" type="boolean" default="false">
+  Display estimated reading time
+</ParamField>
+
+<ParamField path="showComma" type="boolean" default="true">
+  Show comma separator between date and reading time
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.ContentMeta({
+  showReadingTime: true,
+})
+```
+
+### TagList
+
+Displays tags from page frontmatter. No configuration options.
+
+```typescript quartz.layout.ts
+Component.TagList()
+```
+
+### RecentNotes
+
+Lists the most recently modified or published pages.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/RecentNotes.tsx
+interface Options {
+  title?: string
+  limit: number
+  linkToMore: SimpleSlug | false
+  showTags: boolean
+  filter: (f: QuartzPluginData) => boolean
+  sort: (f1: QuartzPluginData, f2: QuartzPluginData) => number
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="title" type="string" default="Recent Notes">
+  Section heading
+</ParamField>
+
+<ParamField path="limit" type="number" default="3">
+  Maximum number of notes to display
+</ParamField>
+
+<ParamField path="linkToMore" type="string | false" default="false">
+  Slug to link for viewing all notes
+</ParamField>
+
+<ParamField path="showTags" type="boolean" default="true">
+  Display tags for each note
+</ParamField>
+
+<ParamField path="filter" type="function">
+  Filter which pages to include
+</ParamField>
+
+<ParamField path="sort" type="function">
+  Custom sorting function
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.RecentNotes({
+  title: "Latest Posts",
+  limit: 5,
+  linkToMore: "posts" as SimpleSlug,
+  showTags: true,
+  filter: (page) => page.frontmatter?.draft !== true,
+})
+```
+
+## Utility Components
+
+### Darkmode
+
+Toggle button for light/dark theme. No configuration options.
+
+```typescript quartz.layout.ts
+Component.Darkmode()
+```
+
+### ReaderMode
+
+Toggle button for reader mode (focused reading view). No configuration options.
+
+```typescript quartz.layout.ts
+Component.ReaderMode()
+```
+
+### Comments
+
+Giscus-powered comments section.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Comments.tsx
+type Options = {
+  provider: "giscus"
+  options: {
+    repo: `${string}/${string}`
+    repoId: string
+    category: string
+    categoryId: string
+    themeUrl?: string
+    lightTheme?: string
+    darkTheme?: string
+    mapping?: "url" | "title" | "og:title" | "specific" | "number" | "pathname"
+    strict?: boolean
+    reactionsEnabled?: boolean
+    inputPosition?: "top" | "bottom"
+    lang?: string
+  }
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="options.repo" type="string" required>
+  GitHub repository in format `owner/repo`
+</ParamField>
+
+<ParamField path="options.repoId" type="string" required>
+  Repository ID from Giscus configuration
+</ParamField>
+
+<ParamField path="options.category" type="string" required>
+  Discussion category name
+</ParamField>
+
+<ParamField path="options.categoryId" type="string" required>
+  Category ID from Giscus configuration
+</ParamField>
+
+<ParamField path="options.mapping" type="string" default="url">
+  How to map pages to discussions
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Comments({
+  provider: "giscus",
+  options: {
+    repo: "username/repo",
+    repoId: "R_kgDOH...",
+    category: "General",
+    categoryId: "DIC_kwDOH...",
+    mapping: "pathname",
+    reactionsEnabled: true,
+  },
+})
+```
+
+<Note>
+Comments can be disabled per-page using frontmatter: `comments: false`
+</Note>
+
+### Footer
+
+Site footer with links and copyright.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Footer.tsx
+interface Options {
+  links: Record<string, string>
+}
+```
+</Accordion>
+
+**Configuration Options:**
+
+<ParamField path="links" type="Record<string, string>">
+  Object mapping link text to URLs
+</ParamField>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Footer({
+  links: {
+    GitHub: "https://github.com/username",
+    Twitter: "https://twitter.com/username",
+    RSS: "/index.xml",
+  },
+})
+```
+
+### Spacer
+
+Adds vertical spacing. Typically used with `MobileOnly`.
+
+```typescript quartz.layout.ts
+Component.MobileOnly(Component.Spacer())
+```
+
+### DesktopOnly / MobileOnly
+
+Wrapper components that show content only on desktop or mobile.
+
+```typescript quartz.layout.ts
+Component.DesktopOnly(Component.TableOfContents())
+Component.MobileOnly(Component.Spacer())
+```
+
+### Flex
+
+Flexbox layout container for arranging components.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/Flex.tsx
+type FlexConfig = {
+  components: {
+    Component: QuartzComponent
+    grow?: boolean
+    shrink?: boolean
+    basis?: string
+    order?: number
+    align?: "start" | "end" | "center" | "stretch"
+    justify?: "start" | "end" | "center" | "between" | "around"
+  }[]
+  direction?: "row" | "row-reverse" | "column" | "column-reverse"
+  wrap?: "nowrap" | "wrap" | "wrap-reverse"
+  gap?: string
+}
+```
+</Accordion>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.Flex({
+  components: [
+    {
+      Component: Component.Search(),
+      grow: true,
+    },
+    { Component: Component.Darkmode() },
+    { Component: Component.ReaderMode() },
+  ],
+  direction: "row",
+  gap: "1rem",
+})
+```
+
+### ConditionalRender
+
+Conditionally render a component based on page properties.
+
+<Accordion title="View Source Code" icon="code">
+```typescript quartz/components/ConditionalRender.tsx
+type ConditionalRenderConfig = {
+  component: QuartzComponent
+  condition: (props: QuartzComponentProps) => boolean
+}
+```
+</Accordion>
+
+**Usage Example:**
+
+```typescript quartz.layout.ts
+Component.ConditionalRender({
+  component: Component.Breadcrumbs(),
+  condition: (page) => page.fileData.slug !== "index",
+})
+```
+
+## Page Components
+
+These are full-page templates used by Quartz's emitter plugins:
+
+- **Content** - Standard single-page template
+- **TagContent** - Tag index page showing all pages with a tag
+- **FolderContent** - Folder index page
+- **NotFound** - 404 error page
+
+You typically don't configure these directly; they're used internally by Quartz.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Components Overview" icon="grid" href="/quartz/components/overview">
+    Learn about Quartz's component architecture
+  </Card>
+  <Card title="Custom Components" icon="wand-magic-sparkles" href="/quartz/components/custom">
+    Create your own custom components
+  </Card>
+</CardGroup>

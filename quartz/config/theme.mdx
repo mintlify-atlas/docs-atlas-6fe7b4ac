@@ -1,0 +1,395 @@
+---
+title: Theme Configuration
+description: Customize colors, typography, and fonts for your Quartz site
+---
+
+The theme configuration in Quartz controls the visual appearance of your site, including color schemes for light and dark modes, typography, and font loading.
+
+## Theme Structure
+
+Theme settings are nested within the `configuration` object:
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    theme: {
+      fontOrigin: "googleFonts",
+      cdnCaching: true,
+      typography: {
+        header: "Schibsted Grotesk",
+        body: "Source Sans Pro",
+        code: "IBM Plex Mono",
+      },
+      colors: {
+        lightMode: { /* ... */ },
+        darkMode: { /* ... */ },
+      },
+    },
+  },
+}
+```
+
+## Typography
+
+Define fonts for headers, body text, and code blocks.
+
+### Font Configuration
+
+```typescript quartz.config.ts
+const config: QuartzConfig = {
+  configuration: {
+    theme: {
+      typography: {
+        header: "Schibsted Grotesk",
+        body: "Source Sans Pro",
+        code: "IBM Plex Mono",
+      },
+    },
+  },
+}
+```
+
+<ParamField path="typography.header" type="string" required>
+  Font family for headings (h1, h2, h3, etc.). Example: `"Schibsted Grotesk"`
+</ParamField>
+
+<ParamField path="typography.body" type="string" required>
+  Font family for body text and paragraphs. Example: `"Source Sans Pro"`
+</ParamField>
+
+<ParamField path="typography.code" type="string" required>
+  Monospace font for code blocks and inline code. Example: `"IBM Plex Mono"`
+</ParamField>
+
+### Font Loading
+
+<ParamField path="fontOrigin" type="'googleFonts' | 'local'" default="googleFonts">
+  Where to load fonts from:
+  - `"googleFonts"` - Load from Google Fonts CDN
+  - `"local"` - Use locally hosted font files
+</ParamField>
+
+<ParamField path="cdnCaching" type="boolean" default={true}>
+  Enable CDN caching for faster font loading. Only applies when `fontOrigin` is `"googleFonts"`.
+</ParamField>
+
+<Tabs>
+  <Tab title="Google Fonts">
+    ```typescript
+    theme: {
+      fontOrigin: "googleFonts",
+      cdnCaching: true,
+      typography: {
+        header: "Inter",
+        body: "Inter",
+        code: "JetBrains Mono",
+      },
+    }
+    ```
+    Fonts are automatically loaded from Google Fonts. Ensure font names match exactly.
+  </Tab>
+  <Tab title="Local Fonts">
+    ```typescript
+    theme: {
+      fontOrigin: "local",
+      typography: {
+        header: "CustomHeader",
+        body: "CustomBody",
+        code: "CustomMono",
+      },
+    }
+    ```
+    Place font files in `quartz/static/fonts/` and define `@font-face` rules in your custom CSS.
+  </Tab>
+</Tabs>
+
+## Color Schemes
+
+Quartz supports separate color schemes for light and dark modes. Each mode defines a complete color palette.
+
+### Color Structure
+
+Both `lightMode` and `darkMode` use the same color properties:
+
+<ResponseField name="light" type="string">
+  Background color for the main content area
+</ResponseField>
+
+<ResponseField name="lightgray" type="string">
+  Background for secondary UI elements (sidebars, cards)
+</ResponseField>
+
+<ResponseField name="gray" type="string">
+  Border colors and subtle dividers
+</ResponseField>
+
+<ResponseField name="darkgray" type="string">
+  Secondary text color (metadata, captions)
+</ResponseField>
+
+<ResponseField name="dark" type="string">
+  Primary text color for body content
+</ResponseField>
+
+<ResponseField name="secondary" type="string">
+  Primary accent color (links, buttons)
+</ResponseField>
+
+<ResponseField name="tertiary" type="string">
+  Secondary accent color (hover states, tags)
+</ResponseField>
+
+<ResponseField name="highlight" type="string">
+  Background highlight for selections and hover states
+</ResponseField>
+
+<ResponseField name="textHighlight" type="string">
+  Text highlight color (like a marker)
+</ResponseField>
+
+<ResponseField name="danger" type="string">
+  Error and warning text color
+</ResponseField>
+
+<ResponseField name="dangerSubtle" type="string">
+  Background for error/warning messages
+</ResponseField>
+
+### Light Mode Colors
+
+Example from the Siebenlande configuration:
+
+```typescript quartz.config.ts
+colors: {
+  lightMode: {
+    light: "#faf8f8",
+    lightgray: "#e5e5e5",
+    gray: "#b8b8b8",
+    darkgray: "#4e4e4e",
+    dark: "#2b2b2b",
+    secondary: "#284b63",
+    tertiary: "#84a59d",
+    highlight: "rgba(143, 159, 169, 0.15)",
+    textHighlight: "#fff23688",
+    danger: "#d1242f",
+    dangerSubtle: "#ffebe9",
+  },
+}
+```
+
+<CardGroup cols={3}>
+  <Card title="Background">
+    `light: #faf8f8`  
+    Warm off-white for comfortable reading
+  </Card>
+  <Card title="Primary Accent">
+    `secondary: #284b63`  
+    Deep blue for links and interactive elements
+  </Card>
+  <Card title="Secondary Accent">
+    `tertiary: #84a59d`  
+    Muted sage green for tags and metadata
+  </Card>
+</CardGroup>
+
+### Dark Mode Colors
+
+Example from the Siebenlande configuration:
+
+```typescript quartz.config.ts
+colors: {
+  darkMode: {
+    light: "#161618",
+    lightgray: "#393639",
+    gray: "#646464",
+    darkgray: "#d4d4d4",
+    dark: "#ebebec",
+    secondary: "#7b97aa",
+    tertiary: "#84a59d",
+    highlight: "rgba(143, 159, 169, 0.15)",
+    textHighlight: "#b3aa0288",
+    danger: "#f85149",
+    dangerSubtle: "rgba(248, 81, 73, 0.1)",
+  },
+}
+```
+
+<CardGroup cols={3}>
+  <Card title="Background">
+    `light: #161618`  
+    Near-black with subtle warmth
+  </Card>
+  <Card title="Primary Accent">
+    `secondary: #7b97aa`  
+    Desaturated blue for reduced eye strain
+  </Card>
+  <Card title="Secondary Accent">
+    `tertiary: #84a59d`  
+    Consistent sage green across both modes
+  </Card>
+</CardGroup>
+
+## Complete Theme Example
+
+Here's the full theme configuration from Siebenlande:
+
+```typescript quartz.config.ts
+import { QuartzConfig } from "./quartz/cfg"
+
+const config: QuartzConfig = {
+  configuration: {
+    theme: {
+      fontOrigin: "googleFonts",
+      cdnCaching: true,
+      typography: {
+        header: "Schibsted Grotesk",
+        body: "Source Sans Pro",
+        code: "IBM Plex Mono",
+      },
+      colors: {
+        lightMode: {
+          light: "#faf8f8",
+          lightgray: "#e5e5e5",
+          gray: "#b8b8b8",
+          darkgray: "#4e4e4e",
+          dark: "#2b2b2b",
+          secondary: "#284b63",
+          tertiary: "#84a59d",
+          highlight: "rgba(143, 159, 169, 0.15)",
+          textHighlight: "#fff23688",
+          danger: "#d1242f",
+          dangerSubtle: "#ffebe9",
+        },
+        darkMode: {
+          light: "#161618",
+          lightgray: "#393639",
+          gray: "#646464",
+          darkgray: "#d4d4d4",
+          dark: "#ebebec",
+          secondary: "#7b97aa",
+          tertiary: "#84a59d",
+          highlight: "rgba(143, 159, 169, 0.15)",
+          textHighlight: "#b3aa0288",
+          danger: "#f85149",
+          dangerSubtle: "rgba(248, 81, 73, 0.1)",
+        },
+      },
+    },
+  },
+}
+
+export default config
+```
+
+## Color Guidelines
+
+<AccordionGroup>
+  <Accordion title="Choosing accessible colors">
+    Ensure sufficient contrast between text and background colors:
+    - **Body text**: Minimum 4.5:1 contrast ratio (WCAG AA)
+    - **Large text** (18pt+): Minimum 3:1 contrast ratio
+    - Use tools like [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
+    
+    Test both light and dark modes for accessibility.
+  </Accordion>
+  
+  <Accordion title="Light vs. dark mode strategy">
+    **Light mode**: Higher contrast, brighter colors
+    - Use darker text on lighter backgrounds
+    - More saturated accent colors work well
+    
+    **Dark mode**: Reduced contrast, muted colors
+    - Avoid pure white (#ffffff) - use off-white (#ebebec)
+    - Desaturate accent colors to reduce eye strain
+    - Lower opacity for highlights and overlays
+  </Accordion>
+  
+  <Accordion title="Using transparency">
+    Transparent colors (rgba) are useful for:
+    - **Highlights**: `rgba(143, 159, 169, 0.15)`
+    - **Text highlights**: `#fff23688` (hex with alpha)
+    - **Overlays**: Semi-transparent backgrounds
+    
+    Ensure transparent colors work on all background variations.
+  </Accordion>
+  
+  <Accordion title="Semantic color naming">
+    Color properties have semantic meanings:
+    - `light` → `dark`: Background to foreground hierarchy
+    - `secondary`: Primary interactive elements
+    - `tertiary`: Secondary interactive elements
+    - `danger`: Errors, warnings, destructive actions
+    
+    Maintain these semantic relationships for consistency.
+  </Accordion>
+</AccordionGroup>
+
+## Popular Font Combinations
+
+<Tabs>
+  <Tab title="Modern Sans">
+    ```typescript
+    typography: {
+      header: "Inter",
+      body: "Inter",
+      code: "JetBrains Mono",
+    }
+    ```
+    Clean, professional, excellent readability.
+  </Tab>
+  <Tab title="Classic Serif">
+    ```typescript
+    typography: {
+      header: "Merriweather",
+      body: "Merriweather",
+      code: "Source Code Pro",
+    }
+    ```
+    Traditional, elegant, great for long-form content.
+  </Tab>
+  <Tab title="Mixed Style">
+    ```typescript
+    typography: {
+      header: "Playfair Display",
+      body: "Source Sans Pro",
+      code: "Fira Code",
+    }
+    ```
+    Serif headings with sans-serif body for contrast.
+  </Tab>
+  <Tab title="Siebenlande">
+    ```typescript
+    typography: {
+      header: "Schibsted Grotesk",
+      body: "Source Sans Pro",
+      code: "IBM Plex Mono",
+    }
+    ```
+    Modern grotesque with excellent legibility.
+  </Tab>
+</Tabs>
+
+## Testing Your Theme
+
+After configuring your theme:
+
+1. **Build your site**: `npx quartz build`
+2. **Test both modes**: Toggle between light and dark mode
+3. **Check contrast**: Verify text is readable in all contexts
+4. **Test interactive states**: Hover over links, buttons, and other elements
+5. **Validate on devices**: Check appearance on desktop, tablet, and mobile
+
+<Note>
+  Changes to theme configuration require rebuilding your site to take effect.
+</Note>
+
+## Related Configuration
+
+<CardGroup cols={2}>
+  <Card title="Site Settings" icon="gear" href="/quartz/config/site-settings">
+    Configure page title, locale, and behavior
+  </Card>
+  <Card title="Layout Configuration" icon="layout" href="/quartz/config/layout">
+    Organize components and page structure
+  </Card>
+</CardGroup>

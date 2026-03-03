@@ -1,0 +1,349 @@
+---
+title: Quick Start
+description: Get up and running with Quartz in minutes
+---
+
+## Create Your First Quartz Site
+
+Once you have Quartz installed, you can create and build your first site in just a few commands.
+
+<Steps>
+  <Step title="Initialize Your Content">
+    Run the `create` command to set up your content folder:
+
+    ```bash
+    npx quartz create
+    ```
+
+    This interactive command will guide you through the setup process.
+
+    ### Setup Options
+
+    You'll be prompted to choose how to initialize your content:
+
+    <Tabs>
+      <Tab title="Empty Quartz">
+        Start with a blank slate:
+        
+        - Creates a new `content` folder
+        - Adds a default `index.md` welcome page
+        - Perfect for starting fresh
+
+        ```markdown
+        ---
+        title: Welcome to Quartz
+        ---
+
+        This is a blank Quartz installation.
+        See the [documentation](https://quartz.jzhao.xyz) for how to get started.
+        ```
+      </Tab>
+
+      <Tab title="Copy Existing Folder">
+        Copy content from an existing folder:
+        
+        - Overwrites the `content` folder
+        - Preserves file timestamps
+        - Great for importing existing notes
+
+        You'll be prompted to enter the full path:
+        ```bash
+        # Example
+        /Users/yourname/Documents/notes
+        ```
+
+        <Tip>
+          On most terminal emulators, you can drag and drop a folder into the window to paste the full path.
+        </Tip>
+      </Tab>
+
+      <Tab title="Symlink Existing Folder">
+        Create a symbolic link to an existing folder:
+        
+        - Links to your existing notes without copying
+        - Changes to source folder are reflected immediately
+        - Ideal for Obsidian vaults
+
+        <Warning>
+          Only select this if you understand symbolic links. This creates a reference to your original folder rather than copying files.
+        </Warning>
+      </Tab>
+    </Tabs>
+
+    ### Link Resolution Strategy
+
+    Next, choose how Quartz should resolve links (this should match your Obsidian settings):
+
+    | Strategy | Description | Example |
+    |----------|-------------|----------|
+    | **Shortest Path** | Links use the shortest unique path (default) | `[[note]]` |
+    | **Absolute Path** | Links use full path from root | `[[folder/subfolder/note]]` |
+    | **Relative Path** | Links are relative to current file | `[[../other/note]]` |
+
+    <Note>
+      You can change this later in `quartz.config.ts` by modifying the `markdownLinkResolution` option.
+    </Note>
+  </Step>
+
+  <Step title="Build Your Site">
+    Build your Quartz site into static HTML files:
+
+    ```bash
+    npx quartz build
+    ```
+
+    This command:
+    - Processes all Markdown files in your `content` folder
+    - Generates static HTML, CSS, and JavaScript
+    - Outputs to the `public` folder (by default)
+
+    ### Build Options
+
+    <CodeGroup>
+    ```bash Basic Build
+    npx quartz build
+    ```
+
+    ```bash Custom Output Directory
+    npx quartz build --output dist
+    # or
+    npx quartz build -o dist
+    ```
+
+    ```bash Custom Content Directory
+    npx quartz build --directory docs
+    # or
+    npx quartz build -d docs
+    ```
+
+    ```bash Verbose Output
+    npx quartz build --verbose
+    # or
+    npx quartz build -v
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Preview Locally">
+    Start a local development server to preview your site:
+
+    ```bash
+    npx quartz build --serve
+    ```
+
+    This will:
+    - Build your site
+    - Start a local server at `http://localhost:8080`
+    - Watch for changes and rebuild automatically
+    - Enable hot-reload for instant updates
+
+    <Card title="Local Preview" icon="browser">
+      Open [http://localhost:8080](http://localhost:8080) in your browser to see your site.
+    </Card>
+
+    ### Server Options
+
+    <CodeGroup>
+    ```bash Default Server
+    npx quartz build --serve
+    ```
+
+    ```bash Custom Port
+    npx quartz build --serve --port 3000
+    ```
+
+    ```bash Custom Base Directory
+    npx quartz build --serve --baseDir /docs
+    ```
+
+    ```bash Custom WebSocket Port
+    npx quartz build --serve --wsPort 3001
+    ```
+    </CodeGroup>
+
+    <Tip>
+      The `--serve` flag automatically enables `--watch` mode, so your site will rebuild when you make changes.
+    </Tip>
+  </Step>
+
+  <Step title="Add Your Content">
+    Add Markdown files to your `content` folder:
+
+    ```bash
+    # Create a new note
+    echo "# My First Note\n\nThis is my first note in Quartz!" > content/first-note.md
+    ```
+
+    Your site will automatically rebuild and refresh if the server is running.
+
+    ### Frontmatter
+
+    Add YAML frontmatter to customize each page:
+
+    ```markdown
+    ---
+    title: My Custom Title
+    description: A brief description of this page
+    tags:
+      - tutorial
+      - getting-started
+    ---
+
+    # Page Content
+
+    Your content here...
+    ```
+  </Step>
+</Steps>
+
+## All CLI Commands
+
+Quartz provides several commands to manage your site:
+
+<CardGroup cols={2}>
+  <Card title="create" icon="plus">
+    Initialize Quartz and set up your content folder
+    
+    ```bash
+    npx quartz create
+    ```
+  </Card>
+
+  <Card title="build" icon="hammer">
+    Build Quartz into static HTML files
+    
+    ```bash
+    npx quartz build
+    ```
+  </Card>
+
+  <Card title="update" icon="arrow-up">
+    Get the latest Quartz updates from upstream
+    
+    ```bash
+    npx quartz update
+    ```
+  </Card>
+
+  <Card title="sync" icon="sync">
+    Sync your Quartz to and from GitHub
+    
+    ```bash
+    npx quartz sync
+    ```
+  </Card>
+
+  <Card title="restore" icon="clock-rotate-left">
+    Restore your content folder from cache
+    
+    ```bash
+    npx quartz restore
+    ```
+  </Card>
+</CardGroup>
+
+## Common Command Options
+
+### Build Command Flags
+
+| Flag | Alias | Default | Description |
+|------|-------|---------|-------------|
+| `--serve` | - | `false` | Run a local server for live preview |
+| `--watch` | - | `false` | Watch for changes and rebuild automatically |
+| `--output` | `-o` | `public` | Output folder for built files |
+| `--directory` | `-d` | `content` | Directory to look for content files |
+| `--port` | - | `8080` | Port to serve Quartz on |
+| `--wsPort` | - | `3001` | Port for WebSocket hot-reload |
+| `--verbose` | `-v` | `false` | Print extra logging information |
+| `--bundleInfo` | - | `false` | Show detailed bundle information |
+| `--concurrency` | - | auto | Number of threads for parsing notes |
+
+### Create Command Flags
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--strategy` | `-X` | Content folder setup strategy: `new`, `copy`, or `symlink` |
+| `--source` | `-s` | Source directory to copy/symlink from |
+| `--links` | `-l` | Link resolution strategy: `absolute`, `shortest`, or `relative` |
+| `--directory` | `-d` | Directory to create/modify (default: `content`) |
+
+### Sync Command Flags
+
+| Flag | Alias | Default | Description |
+|------|-------|---------|-------------|
+| `--commit` | - | `true` | Create a git commit for unsaved changes |
+| `--message` | `-m` | auto | Override the default commit message |
+| `--push` | - | `true` | Push updates to your fork |
+| `--pull` | - | `true` | Pull updates from your fork |
+
+## Example Workflows
+
+<AccordionGroup>
+  <Accordion title="Development Workflow">
+    ```bash
+    # Start development server
+    npx quartz build --serve
+
+    # Edit your notes in content/
+    # Site rebuilds automatically
+
+    # Stop server with Ctrl+C
+    ```
+  </Accordion>
+
+  <Accordion title="Import Obsidian Vault">
+    ```bash
+    # Initialize with symlink to Obsidian vault
+    npx quartz create --strategy symlink --source ~/Documents/ObsidianVault
+
+    # Build and preview
+    npx quartz build --serve
+    ```
+  </Accordion>
+
+  <Accordion title="Deploy Workflow">
+    ```bash
+    # Build for production
+    npx quartz build
+
+    # Commit and push changes
+    npx quartz sync
+
+    # Your hosting provider will pick up changes automatically
+    ```
+  </Accordion>
+
+  <Accordion title="Update Quartz">
+    ```bash
+    # Get latest updates from upstream
+    npx quartz update
+
+    # Rebuild your site
+    npx quartz build
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear">
+    Customize your Quartz site by editing `quartz.config.ts`
+  </Card>
+
+  <Card title="Hosting" icon="cloud">
+    Deploy your site to the web using platforms like GitHub Pages, Netlify, or Vercel
+  </Card>
+
+  <Card title="Plugins" icon="puzzle-piece">
+    Extend Quartz functionality with plugins and transformers
+  </Card>
+
+  <Card title="Themes" icon="palette">
+    Customize the look and feel of your site with themes and styling
+  </Card>
+</CardGroup>
+
+<Note>
+  For more advanced configuration and customization options, visit the [official Quartz documentation](https://quartz.jzhao.xyz/).
+</Note>

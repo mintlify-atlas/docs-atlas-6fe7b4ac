@@ -1,0 +1,178 @@
+---
+title: Installation
+description: Install Quartz and set up your development environment
+---
+
+## Prerequisites
+
+Before installing Quartz, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    Version 22 or higher required
+  </Card>
+  
+  <Card title="npm" icon="npm">
+    Version 10.9.2 or higher required
+  </Card>
+</CardGroup>
+
+<Note>
+  Check your versions by running `node --version` and `npm --version` in your terminal.
+</Note>
+
+### Verify Prerequisites
+
+Run these commands to check if you meet the requirements:
+
+```bash
+node --version
+# Should output v22.x.x or higher
+
+npm --version
+# Should output 10.9.2 or higher
+```
+
+## Installation Methods
+
+<Tabs>
+  <Tab title="From GitHub (Recommended)">
+    The recommended way to install Quartz is to fork and clone the repository:
+
+    <Steps>
+      <Step title="Fork the Repository">
+        Go to [https://github.com/jackyzha0/quartz](https://github.com/jackyzha0/quartz) and fork the repository to your GitHub account.
+      </Step>
+
+      <Step title="Clone Your Fork">
+        Clone your forked repository to your local machine:
+        
+        ```bash
+        git clone https://github.com/YOUR_USERNAME/quartz.git
+        cd quartz
+        ```
+      </Step>
+
+      <Step title="Install Dependencies">
+        Install the required npm packages:
+        
+        ```bash
+        npm install
+        ```
+        
+        This will install all dependencies listed in `package.json`, including:
+        - Build tools (esbuild, TypeScript)
+        - Content processors (remark, rehype plugins)
+        - UI libraries (Preact, D3.js)
+        - CLI tools (@clack/prompts, yargs)
+      </Step>
+
+      <Step title="Verify Installation">
+        Test that Quartz is installed correctly:
+        
+        ```bash
+        npx quartz --version
+        ```
+        
+        You should see the version number (e.g., `4.5.2`).
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Using npx">
+    You can also use npx to run Quartz commands directly without cloning:
+
+    ```bash
+    npx @jackyzha0/quartz create
+    ```
+
+    <Warning>
+      This method is less common and may require additional setup. The fork method is recommended for most users.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Package Information
+
+Quartz uses the following package configuration:
+
+<CodeGroup>
+```json package.json (excerpt)
+{
+  "name": "@jackyzha0/quartz",
+  "description": "🌱 publish your digital garden and notes as a website",
+  "version": "4.5.2",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "npm": ">=10.9.2",
+    "node": ">=22"
+  }
+}
+```
+</CodeGroup>
+
+## Available Scripts
+
+After installation, you have access to these npm scripts:
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| **quartz** | `npm run quartz` | Run Quartz CLI commands |
+| **docs** | `npm run docs` | Build and serve the docs directory |
+| **check** | `npm run check` | Run TypeScript and Prettier checks |
+| **format** | `npm run format` | Format code with Prettier |
+| **test** | `npm run test` | Run tests |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Node.js version too old">
+    If you see an error about Node.js version, you need to upgrade:
+
+    ```bash
+    # Using nvm (recommended)
+    nvm install 22
+    nvm use 22
+
+    # Or download from nodejs.org
+    # Visit: https://nodejs.org/
+    ```
+  </Accordion>
+
+  <Accordion title="npm version too old">
+    Update npm to the latest version:
+
+    ```bash
+    npm install -g npm@latest
+    ```
+  </Accordion>
+
+  <Accordion title="Installation fails with permission errors">
+    On Unix systems, you may need to use sudo or fix npm permissions:
+
+    ```bash
+    # Option 1: Use sudo (not recommended)
+    sudo npm install
+
+    # Option 2: Fix npm permissions (recommended)
+    # Follow: https://docs.npmjs.com/resolving-eacces-permissions-errors
+    ```
+  </Accordion>
+
+  <Accordion title="Module not found errors">
+    Try clearing npm cache and reinstalling:
+
+    ```bash
+    rm -rf node_modules package-lock.json
+    npm cache clean --force
+    npm install
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="Quick Start Guide" icon="rocket" href="/quartz/quickstart">
+  Continue to the Quick Start guide to create your first Quartz site
+</Card>

@@ -1,0 +1,569 @@
+---
+title: Creating Custom Components
+description: Build your own Quartz components to extend your site's functionality
+---
+
+Quartz's component system is designed to be extensible. You can create custom components to add new functionality or modify existing behavior.
+
+## Component Basics
+
+A Quartz component is a TypeScript/Preact function that returns JSX. Components follow a constructor pattern that allows for configuration.
+
+### Minimal Component
+
+Here's the simplest possible component:
+
+```typescript quartz/components/MyComponent.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+
+const MyComponent: QuartzComponent = () => {
+  return <div>Hello, World!</div>
+}
+
+export default (() => MyComponent) satisfies QuartzComponentConstructor
+```
+
+### Using Component Props
+
+Components receive rich context through their props:
+
+```typescript quartz/components/CustomTitle.tsx
+import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
+
+const CustomTitle: QuartzComponent = ({ fileData, cfg }: QuartzComponentProps) => {
+  const title = fileData.frontmatter?.title || "Untitled"
+  const locale = cfg.locale
+  
+  return (
+    <div>
+      <h1>{title}</h1>
+      <p>Locale: {locale}</p>
+    </div>
+  )
+}
+
+export default (() => CustomTitle) satisfies QuartzComponentConstructor
+```
+
+## Adding Configuration Options
+
+Most components should accept configuration options:
+
+```typescript quartz/components/GreetingCard.tsx
+import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
+import { classNames } from "../util/lang"
+
+interface Options {
+  greeting: string
+  showDate: boolean
+  backgroundColor?: string
+}
+
+const defaultOptions: Options = {
+  greeting: "Welcome",
+  showDate: true,
+}
+
+export default ((userOpts?: Partial<Options>) => {
+  const opts: Options = { ...defaultOptions, ...userOpts }
+  
+  const GreetingCard: QuartzComponent = ({ fileData, displayClass }: QuartzComponentProps) => {
+    const date = fileData.dates?.published
+    const style = opts.backgroundColor ? `background-color: ${opts.backgroundColor}` : undefined
+    
+    return (
+      <div class={classNames(displayClass, "greeting-card")} style={style}>
+        <h2>{opts.greeting}</h2>
+        {opts.showDate && date && <p>Published: {date.toLocaleDateString()}</p>}
+      </div>
+    )
+  }
+  
+  return GreetingCard
+}) satisfies QuartzComponentConstructor<Options>
+```
+
+**Usage in `quartz.layout.ts`:**
+
+```typescript
+Component.GreetingCard({
+  greeting: "Hello!",
+  showDate: true,
+  backgroundColor: "#f0f0f0",
+})
+```
+
+## Adding CSS Styles
+
+Components can include CSS that's automatically bundled:
+
+### Inline CSS
+
+```typescript quartz/components/StyledBox.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+
+const StyledBox: QuartzComponent = () => {
+  return <div class="styled-box">Content</div>
+}
+
+StyledBox.css = `
+.styled-box {
+  padding: 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  background: var(--light);
+}
+`
+
+export default (() => StyledBox) satisfies QuartzComponentConstructor
+```
+
+### SCSS Files
+
+For larger components, use separate SCSS files:
+
+```typescript quartz/components/ComplexComponent.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+import style from "./styles/complexComponent.scss"
+
+const ComplexComponent: QuartzComponent = () => {
+  return <div class="complex-component">...</div>
+}
+
+ComplexComponent.css = style
+
+export default (() => ComplexComponent) satisfies QuartzComponentConstructor
+```
+
+```scss quartz/components/styles/complexComponent.scss
+.complex-component {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
+  .header {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .content {
+    color: var(--text);
+  }
+}
+```
+
+## Adding JavaScript
+
+Components can include client-side JavaScript that runs before or after the DOM loads.
+
+### After DOM Loaded
+
+Most interactive components use `afterDOMLoaded`:
+
+```typescript quartz/components/InteractiveButton.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+// @ts-ignore
+import script from "./scripts/interactiveButton.inline"
+
+const InteractiveButton: QuartzComponent = () => {
+  return <button class="interactive-btn" data-count="0">Click me: 0</button>
+}
+
+InteractiveButton.afterDOMLoaded = script
+
+export default (() => InteractiveButton) satisfies QuartzComponentConstructor
+```
+
+```typescript quartz/components/scripts/interactiveButton.inline.ts
+document.addEventListener("nav", () => {
+  const buttons = document.querySelectorAll(".interactive-btn")
+  
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const currentCount = parseInt(button.getAttribute("data-count") || "0")
+      const newCount = currentCount + 1
+      button.setAttribute("data-count", String(newCount))
+      button.textContent = `Click me: ${newCount}`
+    })
+  })
+})
+```
+
+<Note>
+The `nav` event fires on initial page load and after SPA navigation. Always use it instead of `DOMContentLoaded` to ensure your scripts work with Quartz's SPA routing.
+</Note>
+
+### Before DOM Loaded
+
+For critical scripts that must run immediately:
+
+```typescript quartz/components/ThemeDetector.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+// @ts-ignore
+import script from "./scripts/themeDetector.inline"
+
+const ThemeDetector: QuartzComponent = () => {
+  return null // This component doesn't render anything
+}
+
+ThemeDetector.beforeDOMLoaded = script
+
+export default (() => ThemeDetector) satisfies QuartzComponentConstructor
+```
+
+```typescript quartz/components/scripts/themeDetector.inline.ts
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+const theme = localStorage.getItem("theme") || (prefersDark ? "dark" : "light")
+document.documentElement.setAttribute("data-theme", theme)
+```
+
+## Working with File Data
+
+Components have access to all page data through `fileData`:
+
+```typescript quartz/components/PageStats.tsx
+import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
+import readingTime from "reading-time"
+
+const PageStats: QuartzComponent = ({ fileData }: QuartzComponentProps) => {
+  const frontmatter = fileData.frontmatter || {}
+  const text = fileData.text || ""
+  const { minutes, words } = readingTime(text)
+  
+  return (
+    <div class="page-stats">
+      <p>Words: {words}</p>
+      <p>Reading time: {Math.ceil(minutes)} min</p>
+      <p>Tags: {frontmatter.tags?.length || 0}</p>
+      {frontmatter.draft && <span class="draft-badge">Draft</span>}
+    </div>
+  )
+}
+
+export default (() => PageStats) satisfies QuartzComponentConstructor
+```
+
+### Available File Data
+
+<ParamField path="fileData.slug" type="string">
+  Page's URL path
+</ParamField>
+
+<ParamField path="fileData.frontmatter" type="object">
+  YAML frontmatter as an object
+</ParamField>
+
+<ParamField path="fileData.text" type="string">
+  Full page text content
+</ParamField>
+
+<ParamField path="fileData.dates" type="object">
+  Published, modified, and created dates
+</ParamField>
+
+<ParamField path="fileData.toc" type="array">
+  Table of contents structure
+</ParamField>
+
+<ParamField path="fileData.links" type="string[]">
+  Outgoing links from this page
+</ParamField>
+
+## Working with All Files
+
+The `allFiles` prop gives you access to every page in your vault:
+
+```typescript quartz/components/RelatedPages.tsx
+import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
+import { resolveRelative } from "../util/path"
+
+const RelatedPages: QuartzComponent = ({ fileData, allFiles }: QuartzComponentProps) => {
+  const currentTags = fileData.frontmatter?.tags || []
+  
+  // Find pages with overlapping tags
+  const related = allFiles
+    .filter((file) => {
+      if (file.slug === fileData.slug) return false
+      const fileTags = file.frontmatter?.tags || []
+      return fileTags.some((tag) => currentTags.includes(tag))
+    })
+    .slice(0, 5)
+  
+  if (related.length === 0) return null
+  
+  return (
+    <div class="related-pages">
+      <h3>Related Pages</h3>
+      <ul>
+        {related.map((page) => (
+          <li>
+            <a href={resolveRelative(fileData.slug!, page.slug!)}>
+              {page.frontmatter?.title || page.slug}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+export default (() => RelatedPages) satisfies QuartzComponentConstructor
+```
+
+## Responsive Components
+
+Use the `displayClass` prop for responsive styling:
+
+```typescript quartz/components/ResponsiveNav.tsx
+import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
+import { classNames } from "../util/lang"
+
+const ResponsiveNav: QuartzComponent = ({ displayClass }: QuartzComponentProps) => {
+  return (
+    <nav class={classNames(displayClass, "responsive-nav")}>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/blog">Blog</a>
+    </nav>
+  )
+}
+
+ResponsiveNav.css = `
+.responsive-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .responsive-nav {
+    flex-direction: column;
+  }
+}
+`
+
+export default (() => ResponsiveNav) satisfies QuartzComponentConstructor
+```
+
+Or use the built-in `DesktopOnly` and `MobileOnly` wrappers:
+
+```typescript quartz.layout.ts
+Component.DesktopOnly(Component.ResponsiveNav())
+```
+
+## Using Utility Functions
+
+Quartz provides helpful utility functions:
+
+```typescript quartz/components/SmartLinks.tsx
+import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
+import { classNames } from "../util/lang"
+import { resolveRelative, simplifySlug } from "../util/path"
+import { i18n } from "../i18n"
+
+interface Options {
+  links: string[]
+}
+
+export default ((opts: Options) => {
+  const SmartLinks: QuartzComponent = ({ fileData, cfg }: QuartzComponentProps) => {
+    return (
+      <div class="smart-links">
+        {opts.links.map((slug) => {
+          const resolvedUrl = resolveRelative(fileData.slug!, slug)
+          const displayText = i18n(cfg.locale).propertyDefaults.title
+          
+          return <a href={resolvedUrl}>{displayText}</a>
+        })}
+      </div>
+    )
+  }
+  
+  return SmartLinks
+}) satisfies QuartzComponentConstructor<Options>
+```
+
+### Common Utilities
+
+<CodeGroup>
+```typescript classNames
+import { classNames } from "../util/lang"
+
+// Combines CSS classes, filtering out undefined
+classNames(displayClass, "my-component", isActive && "active")
+```
+
+```typescript resolveRelative
+import { resolveRelative } from "../util/path"
+
+// Resolves relative paths between pages
+const url = resolveRelative(fileData.slug!, "other/page")
+```
+
+```typescript i18n
+import { i18n } from "../i18n"
+
+// Access internationalized strings
+const text = i18n(cfg.locale).components.search.title
+```
+</CodeGroup>
+
+## Exporting Components
+
+After creating your component, export it from `quartz/components/index.ts`:
+
+```typescript quartz/components/index.ts
+import MyComponent from "./MyComponent"
+import GreetingCard from "./GreetingCard"
+import PageStats from "./PageStats"
+
+export {
+  // ... existing exports
+  MyComponent,
+  GreetingCard,
+  PageStats,
+}
+```
+
+Then use it in your layout:
+
+```typescript quartz.layout.ts
+import * as Component from "./quartz/components"
+
+export const defaultContentPageLayout: PageLayout = {
+  beforeBody: [
+    Component.GreetingCard({ greeting: "Welcome!" }),
+    Component.ArticleTitle(),
+  ],
+  // ...
+}
+```
+
+## Advanced Examples
+
+### Component with Multiple Scripts
+
+```typescript quartz/components/Dashboard.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+import { concatenateResources } from "../util/resources"
+// @ts-ignore
+import chartScript from "./scripts/chart.inline"
+// @ts-ignore  
+import analyticsScript from "./scripts/analytics.inline"
+import style from "./styles/dashboard.scss"
+
+const Dashboard: QuartzComponent = () => {
+  return (
+    <div class="dashboard">
+      <canvas id="chart"></canvas>
+      <div id="stats"></div>
+    </div>
+  )
+}
+
+Dashboard.css = style
+Dashboard.afterDOMLoaded = concatenateResources(chartScript, analyticsScript)
+
+export default (() => Dashboard) satisfies QuartzComponentConstructor
+```
+
+### Component Using External Data
+
+```typescript quartz/components/ExternalFeed.tsx
+import { QuartzComponent, QuartzComponentConstructor } from "./types"
+
+interface Options {
+  feedUrl: string
+  maxItems: number
+}
+
+export default ((opts: Options) => {
+  const ExternalFeed: QuartzComponent = () => {
+    return (
+      <div class="external-feed" data-feed-url={opts.feedUrl} data-max-items={opts.maxItems}>
+        <div class="loading">Loading feed...</div>
+      </div>
+    )
+  }
+  
+  ExternalFeed.afterDOMLoaded = `
+    document.addEventListener("nav", async () => {
+      const containers = document.querySelectorAll(".external-feed")
+      
+      for (const container of containers) {
+        const feedUrl = container.getAttribute("data-feed-url")
+        const maxItems = parseInt(container.getAttribute("data-max-items") || "5")
+        
+        try {
+          const response = await fetch(feedUrl)
+          const data = await response.json()
+          
+          const html = data.items
+            .slice(0, maxItems)
+            .map(item => \`<li><a href="\${item.url}">\${item.title}</a></li>\`)
+            .join("")
+          
+          container.innerHTML = \`<ul>\${html}</ul>\`
+        } catch (error) {
+          container.innerHTML = "<p>Failed to load feed</p>"
+        }
+      }
+    })
+  `
+  
+  return ExternalFeed
+}) satisfies QuartzComponentConstructor<Options>
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Type Safety" icon="shield">
+    - Always use TypeScript and the provided type definitions
+    - Define clear interfaces for component options
+    - Use `satisfies QuartzComponentConstructor` for type checking
+  </Accordion>
+
+  <Accordion title="Performance" icon="gauge-high">
+    - Keep `allFiles` queries efficient - the array can be large
+    - Use memoization for expensive computations
+    - Lazy load external resources when possible
+  </Accordion>
+
+  <Accordion title="SPA Compatibility" icon="rotate">
+    - Always listen for the `nav` event, not `DOMContentLoaded`
+    - Clean up event listeners to prevent memory leaks
+    - Test components work after navigation
+  </Accordion>
+
+  <Accordion title="Accessibility" icon="universal-access">
+    - Include proper ARIA labels
+    - Ensure keyboard navigation works
+    - Use semantic HTML elements
+  </Accordion>
+
+  <Accordion title="Styling" icon="paintbrush">
+    - Use CSS custom properties for theming
+    - Scope styles with unique class names
+    - Support both light and dark themes
+  </Accordion>
+</AccordionGroup>
+
+## Testing Your Component
+
+1. **Add to layout** - Include in `quartz.layout.ts`
+2. **Build** - Run `npx quartz build`
+3. **Test locally** - Use `npx quartz serve`
+4. **Check navigation** - Navigate between pages to test SPA behavior
+5. **Test responsive** - Check mobile and desktop views
+6. **Test themes** - Toggle dark/light mode
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Components Overview" icon="diagram-project" href="/quartz/components/overview">
+    Understanding Quartz's component architecture
+  </Card>
+  <Card title="Built-in Components" icon="toolbox" href="/quartz/components/built-in">
+    Reference for all built-in components
+  </Card>
+</CardGroup>

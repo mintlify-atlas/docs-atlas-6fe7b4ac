@@ -1,0 +1,565 @@
+---
+title: Transformer Plugins
+description: Process and transform Markdown content in Quartz
+---
+
+Transformer plugins modify your content during the build process. They parse frontmatter, transform Markdown syntax, add features like syntax highlighting and LaTeX support, and process links.
+
+## How Transformers Work
+
+Transformers operate on the content using the [unified](https://unifiedjs.com/) ecosystem:
+
+1. **textTransform** - Modify raw text before parsing
+2. **markdownPlugins** - Transform Markdown AST (using [remark](https://github.com/remarkjs/remark))
+3. **htmlPlugins** - Transform HTML AST (using [rehype](https://github.com/rehypejs/rehype))
+
+<Tip>
+  Transformers run sequentially in the order they're defined in `quartz.config.ts`.
+</Tip>
+
+## Core Transformers
+
+### FrontMatter
+
+Parses YAML or TOML frontmatter from Markdown files.
+
+<CodeGroup>
+```typescript title="Configuration"
+Plugin.FrontMatter({
+  delimiters: "---",  // or "+++" for TOML
+  language: "yaml",   // or "toml"
+})
+```
+
+```yaml title="Example Frontmatter"
+---
+title: My Page Title
+draft: false
+tags: [tutorial, guide]
+aliases: [alternative-url, another-slug]
+created: 2024-01-15
+modified: 2024-03-03
+socialImage: /images/cover.png
+---
+```
+</CodeGroup>
+
+<ParamField path="delimiters" type="string | [string, string]" default="---">
+  Delimiter characters for frontmatter blocks
+</ParamField>
+
+<ParamField path="language" type="yaml | toml" default="yaml">
+  Frontmatter language parser
+</ParamField>
+
+**Supported Fields:**
+
+<ResponseField name="title" type="string">
+  Page title (fallback to filename if not provided)
+</ResponseField>
+
+<ResponseField name="tags" type="string[]">
+  Tags for categorization (supports comma-separated string or array)
+</ResponseField>
+
+<ResponseField name="aliases" type="string[]">
+  Alternative URLs that redirect to this page
+</ResponseField>
+
+<ResponseField name="draft" type="boolean">
+  Mark page as draft (filtered by RemoveDrafts plugin)
+</ResponseField>
+
+<ResponseField name="created" type="string">
+  Creation date (ISO format or YYYY-MM-DD)
+</ResponseField>
+
+<ResponseField name="modified" type="string">
+  Last modification date
+</ResponseField>
+
+<ResponseField name="socialImage" type="string">
+  Image for social media previews
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Page description for SEO and previews
+</ResponseField>
+
+---
+
+### SyntaxHighlighting
+
+Adds syntax highlighting to code blocks using [rehype-pretty-code](https://rehype-pretty-code.netlify.app/).
+
+```typescript title="Configuration"
+Plugin.SyntaxHighlighting({
+  theme: {
+    light: "github-light",
+    dark: "github-dark",
+  },
+  keepBackground: false,
+})
+```
+
+<ParamField path="theme" type="{ light: string, dark: string }">
+  Theme names from [Shiki themes](https://shiki.style/themes)
+</ParamField>
+
+<ParamField path="keepBackground" type="boolean" default={false}>
+  Keep the theme's background color
+</ParamField>
+
+**Usage Example:**
+
+````markdown
+```typescript title="example.ts" {2,4-6}
+function hello(name: string) {
+  console.log(`Hello, ${name}!`)  // highlighted
+  
+  return {
+    message: name,  // highlighted range
+  }
+}
+```
+````
+
+**Features:**
+- Line highlighting: `{2,4-6}`
+- File titles: `title="filename.ts"`
+- Line numbers
+- Copy button support
+
+---
+
+### GitHubFlavoredMarkdown
+
+Enables GitHub Flavored Markdown features: tables, strikethrough, task lists, and autolinks.
+
+```typescript title="Configuration"
+Plugin.GitHubFlavoredMarkdown({
+  enableSmartyPants: true,
+  linkHeadings: true,
+})
+```
+
+<ParamField path="enableSmartyPants" type="boolean" default={true}>
+  Convert straight quotes to curly quotes, dashes to em-dashes, etc.
+</ParamField>
+
+<ParamField path="linkHeadings" type="boolean" default={true}>
+  Add anchor links to headings
+</ParamField>
+
+**GFM Features:**
+
+<Tabs>
+  <Tab title="Tables">
+    ```markdown
+    | Syntax | Description |
+    | ------ | ----------- |
+    | Header | Title |
+    | List   | Item |
+    ```
+  </Tab>
+  <Tab title="Task Lists">
+    ```markdown
+    - [x] Completed task
+    - [ ] Incomplete task
+    - [ ] Another task
+    ```
+  </Tab>
+  <Tab title="Strikethrough">
+    ```markdown
+    ~~This text is deleted~~
+    ```
+  </Tab>
+  <Tab title="Autolinks">
+    ```markdown
+    https://example.com automatically becomes a link
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### ObsidianFlavoredMarkdown
+
+Supports Obsidian-specific Markdown syntax.
+
+```typescript title="Configuration"
+Plugin.ObsidianFlavoredMarkdown({
+  enableInHtmlEmbed: false,
+  enableYouTubeEmbed: true,
+  enableVideoEmbed: true,
+  enableCallouts: true,
+  enableMermaid: true,
+  enableCheckboxToggle: false,
+  enableParseTags: true,
+  enableParseArrows: true,
+  enableParseBracketedTags: true,
+})
+```
+
+**Obsidian Features:**
+
+<AccordionGroup>
+  <Accordion title="Wikilinks">
+    ```markdown
+    [[Internal Link]]
+    [[Link|Display Text]]
+    [[Note#Heading]]
+    [[Note#^block-id]]
+    ```
+  </Accordion>
+  
+  <Accordion title="Callouts">
+    ```markdown
+    > [!note] Note Title
+    > This is a note callout
+    
+    > [!warning]
+    > Warning without title
+    
+    > [!tip]- Collapsible Tip
+    > Collapsed by default
+    ```
+    
+    Supported types: `note`, `abstract`, `info`, `todo`, `tip`, `success`, `question`, `warning`, `failure`, `danger`, `bug`, `example`, `quote`
+  </Accordion>
+  
+  <Accordion title="Embeds">
+    ```markdown
+    ![[image.png]]
+    ![[document.pdf]]
+    ![[note]] # Embed another note
+    ![[video.mp4]]
+    ```
+  </Accordion>
+  
+  <Accordion title="Comments">
+    ```markdown
+    %% This is a comment and won't be rendered %%
+    ```
+  </Accordion>
+  
+  <Accordion title="Mermaid Diagrams">
+    Mermaid diagrams with triple backticks:
+    
+    - Use `mermaid` language tag
+    - Supports flowcharts, sequence diagrams, etc.
+    - Renders interactive diagrams
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Latex
+
+Renders LaTeX math expressions using KaTeX, MathJax, or Typst.
+
+```typescript title="Configuration"
+Plugin.Latex({
+  renderEngine: "katex",
+  customMacros: {
+    "\\RR": "\\mathbb{R}",
+    "\\NN": "\\mathbb{N}",
+  },
+})
+```
+
+<ParamField path="renderEngine" type="katex | mathjax | typst" default="katex">
+  Math rendering engine
+</ParamField>
+
+<ParamField path="customMacros" type="object">
+  Custom LaTeX macros
+</ParamField>
+
+**Usage:**
+
+<Tabs>
+  <Tab title="Inline Math">
+    ```markdown
+    The equation $E = mc^2$ is famous.
+    ```
+  </Tab>
+  <Tab title="Block Math">
+    ```markdown
+    $$
+    \int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+    $$
+    ```
+  </Tab>
+  <Tab title="With Macros">
+    ```markdown
+    The real numbers $\RR$ and natural numbers $\NN$.
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  KaTeX is recommended for faster builds and smaller bundle size.
+</Note>
+
+---
+
+### TableOfContents
+
+Generates table of contents from headings.
+
+```typescript title="Configuration"
+Plugin.TableOfContents({
+  maxDepth: 3,
+  minEntries: 1,
+  showByDefault: true,
+  collapseByDefault: false,
+})
+```
+
+<ParamField path="maxDepth" type="1 | 2 | 3 | 4 | 5 | 6" default={3}>
+  Maximum heading depth to include
+</ParamField>
+
+<ParamField path="minEntries" type="number" default={1}>
+  Minimum number of headings required to show TOC
+</ParamField>
+
+<ParamField path="showByDefault" type="boolean" default={true}>
+  Show TOC by default on all pages
+</ParamField>
+
+<ParamField path="collapseByDefault" type="boolean" default={false}>
+  Collapse TOC by default
+</ParamField>
+
+**Per-page Control:**
+
+```yaml
+---
+enableToc: true  # Override default
+---
+```
+
+---
+
+### CrawlLinks
+
+Processes internal and external links.
+
+```typescript title="Configuration"
+Plugin.CrawlLinks({
+  markdownLinkResolution: "shortest",
+  prettyLinks: true,
+  openLinksInNewTab: false,
+  lazyLoad: false,
+  externalLinkIcon: true,
+})
+```
+
+<ParamField path="markdownLinkResolution" type="shortest | absolute | relative" default="absolute">
+  Strategy for resolving Markdown links
+</ParamField>
+
+<ParamField path="prettyLinks" type="boolean" default={true}>
+  Display only filename in link text instead of full path
+</ParamField>
+
+<ParamField path="openLinksInNewTab" type="boolean" default={false}>
+  Open external links in new tab
+</ParamField>
+
+<ParamField path="lazyLoad" type="boolean" default={false}>
+  Lazy load images and media
+</ParamField>
+
+<ParamField path="externalLinkIcon" type="boolean" default={true}>
+  Add icon to external links
+</ParamField>
+
+---
+
+### CreatedModifiedDate
+
+Extract creation and modification dates from various sources.
+
+```typescript title="Configuration"
+Plugin.CreatedModifiedDate({
+  priority: ["frontmatter", "git", "filesystem"],
+})
+```
+
+<ParamField path="priority" type="string[]" default={["frontmatter", "git", "filesystem"]}>
+  Order of sources to check for dates
+</ParamField>
+
+**Date Sources:**
+
+1. **frontmatter** - `created` and `modified` fields
+2. **git** - Git commit history
+3. **filesystem** - File creation/modification time
+
+---
+
+### Description
+
+Generates page descriptions from content.
+
+```typescript title="Configuration"
+Plugin.Description({
+  descriptionLength: 150,
+})
+```
+
+Extracts the first `descriptionLength` characters as page description if not specified in frontmatter.
+
+---
+
+### Citations
+
+Process citations and bibliography.
+
+```typescript
+Plugin.Citations({
+  bibliographyFile: "./references.bib",
+  csl: "apa",
+})
+```
+
+---
+
+### MissingLinks
+
+Detect and report missing internal links.
+
+```typescript
+Plugin.MissingLinks()
+```
+
+<Warning>
+  Logs warnings for broken internal links during build.
+</Warning>
+
+---
+
+### HardLineBreaks
+
+Convert single line breaks to `<br>` tags.
+
+```typescript
+Plugin.HardLineBreaks()
+```
+
+Useful for poetry or when you want single newlines to create line breaks.
+
+---
+
+### RoamFlavoredMarkdown
+
+Support Roam Research Markdown syntax.
+
+```typescript
+Plugin.RoamFlavoredMarkdown()
+```
+
+## Transformer Order Best Practices
+
+<Steps>
+  <Step title="Parse Frontmatter First">
+    ```typescript
+    Plugin.FrontMatter()
+    ```
+    Always first - other plugins may depend on frontmatter data
+  </Step>
+  
+  <Step title="Date Processing">
+    ```typescript
+    Plugin.CreatedModifiedDate({ priority: ["frontmatter", "git"] })
+    ```
+    Early in pipeline - used by other plugins
+  </Step>
+  
+  <Step title="Syntax Processing">
+    ```typescript
+    Plugin.SyntaxHighlighting({ ... })
+    Plugin.ObsidianFlavoredMarkdown({ ... })
+    Plugin.GitHubFlavoredMarkdown()
+    ```
+    Process syntax before link crawling
+  </Step>
+  
+  <Step title="Content Processing">
+    ```typescript
+    Plugin.TableOfContents()
+    Plugin.CrawlLinks({ ... })
+    Plugin.Latex({ ... })
+    ```
+    Process content structure and special syntax
+  </Step>
+  
+  <Step title="Final Processing">
+    ```typescript
+    Plugin.MissingLinks()
+    Plugin.Description()
+    Plugin.HardLineBreaks()
+    ```
+    Final transformations and validation
+  </Step>
+</Steps>
+
+## Complete Example
+
+```typescript title="quartz.config.ts"
+const config: QuartzConfig = {
+  plugins: {
+    transformers: [
+      // 1. Parse metadata
+      Plugin.FrontMatter(),
+      Plugin.CreatedModifiedDate({
+        priority: ["frontmatter", "git", "filesystem"],
+      }),
+      
+      // 2. Syntax highlighting
+      Plugin.SyntaxHighlighting({
+        theme: {
+          light: "github-light",
+          dark: "github-dark",
+        },
+        keepBackground: false,
+      }),
+      
+      // 3. Markdown syntax support
+      Plugin.ObsidianFlavoredMarkdown({ enableInHtmlEmbed: false }),
+      Plugin.GitHubFlavoredMarkdown(),
+      
+      // 4. Content processing
+      Plugin.TableOfContents(),
+      Plugin.CrawlLinks({ markdownLinkResolution: "shortest" }),
+      Plugin.MissingLinks(),
+      Plugin.Description(),
+      
+      // 5. Special syntax
+      Plugin.Latex({ renderEngine: "katex" }),
+      Plugin.HardLineBreaks(),
+    ],
+    // ... filters and emitters
+  },
+}
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Plugin Overview" icon="puzzle-piece" href="./overview">
+    Understanding the plugin system
+  </Card>
+  <Card title="Filter Plugins" icon="filter" href="./filters">
+    Control content publishing
+  </Card>
+  <Card title="Emitter Plugins" icon="file-export" href="./emitters">
+    Generate output files
+  </Card>
+  <Card title="Unified Ecosystem" icon="link" href="https://unifiedjs.com/">
+    Plugin system foundation
+  </Card>
+</CardGroup>

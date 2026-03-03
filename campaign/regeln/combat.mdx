@@ -1,0 +1,329 @@
+---
+title: Kampfregeln
+description: Kampfmechaniken für Nahkampf, Fernkampf, Rüstungen und Resistenzen
+---
+
+## Kampfgrundlagen
+
+Der Kampf ist in **Runden** unterteilt, in denen jeder Kämpfer **Aktionen** ausführt. Die **Initiative** bestimmt die Kampfreihenfolge und wird über einen **Athletik-Wurf** zu Kampfbeginn ermittelt.
+
+### Konzentration
+
+Wenn eine Kreatur bei einem Zauber mit Konzentration gestört wird, muss sie einen **Konzentrationswurf** bestehen:
+
+```
+SG = 10 + Schaden vs. Zauber-Attribut
+```
+
+## Nahkampf
+
+### Flankieren
+
+Die Position zum Gegner beeinflusst den Kampf:
+
+<Tabs>
+  <Tab title="Frontal (grün)">
+    Angriffe sind **unbeeinflusst**
+  </Tab>
+  
+  <Tab title="Seitlich (gelb)">
+    Der Verteidiger erhält **Nachteil**
+  </Tab>
+  
+  <Tab title="Von Hinten (rot)">
+    - Verteidiger erhält **Nachteil**
+    - Angreifer erhält **Vorteil**
+  </Tab>
+</Tabs>
+
+### Hinterhältiger Angriff
+
+Wenn die angreifende Kreatur noch nicht bemerkt wurde, kann sie einen **Hinterhältigen Angriff** versuchen:
+
+<Steps>
+  <Step title="Heimlichkeitswurf">
+    **Heimlichkeitswurf** gegen gegnerischen **Wahrnehmungswurf**
+  </Step>
+  
+  <Step title="Positionsboni">
+    Der Gegner erhält Boni abhängig von der Annäherung:
+    - **Frontal**: +10 Bonus
+    - **Seitlich**: +5 Bonus
+    - **Von Hinten**: Kein Bonus
+  </Step>
+  
+  <Step title="Erfolgreicher Angriff">
+    Bei bestandenem Wurf bleibt der Angreifer verborgen und der Gegner kann sich nicht verteidigen
+  </Step>
+</Steps>
+
+<Note>
+Durch einen erfolgreichen Hinterhältigen Angriff erhält der Angreifer **keine zusätzlichen Boni** - der Hauptvorteil ist die fehlende Verteidigung.
+</Note>
+
+### Kritische Treffer
+
+#### Beim Angriff
+
+<CardGroup cols={2}>
+  <Card title="Kritischer Fehlschlag (1)">
+    Der Gegner erhält sofort die Gelegenheit zu einem **Gegenangriff**
+  </Card>
+  
+  <Card title="Kritischer Erfolg (20)">
+    Die Boni aus *Waffenkunde* und *Geübte Waffen* werden für diesen Angriff **verdoppelt**
+  </Card>
+</CardGroup>
+
+#### Beim Verteidigen
+
+<CardGroup cols={2}>
+  <Card title="Kritischer Fehlschlag (1)">
+    Jeder erhaltene Schaden wird zu einer **Verletzung**
+  </Card>
+  
+  <Card title="Kritischer Erfolg (20)">
+    Der Verteidiger erhält sofort die Gelegenheit zu einem **Gegenangriff**
+  </Card>
+</CardGroup>
+
+## Fernkampf
+
+### Attribute für Fernkampf
+
+- **Geschick (GES)**: Geschosswaffen (Bögen, Armbrüste)
+- **Athletik (ATH)**: Wurfwaffen (Speere, Messer, Äxte)
+- **Stärke (STÄ)**: Für Steinwürfe gegen Wände
+
+### Schadenstypen
+
+- **Stichschaden**: Pfeile, Bolzen
+- **Schnittschaden**: Äxte, Wurfsterne, geworfene Klingenwaffen
+- **Schmetterschaden**: Steine, Metallkugeln, stumpfe Geschosse
+
+### Reichweiten-Tabelle
+
+Um einen Gegner zu treffen, muss ein **unverteidigter Angriffswurf** mit festgelegtem SG bestanden werden:
+
+| Waffe | 10 | 15 | 20 | 30 | 40 | *SG* |
+|:------|:--:|:--:|:--:|:--:|:--:|:----:|
+|**Wurf**|15'|30'|60'|120'|240'|
+|**Bogen**|30'|60'|120'|240'|480'|
+|**Armbrust**|45'|90'|180'|360'|720'|
+
+<Info>
+Die Tabelle gibt die **maximale Reichweite in Fuß** für jeden Schwierigkeitsgrad an.
+</Info>
+
+### Schadenspotenzial
+
+Das Schadenspotenzial ist abhängig von den **Schadenswürfeln** des Geschosses (üblicherweise W4, W6 oder W8).
+
+Die Anzahl der Würfel hängt vom **Wurfergebnis über dem SG** ab:
+
+<CodeGroup>
+```text Beispiel mit W4-Pfeilen
+1 über SG  → 1W4
+4 über SG  → 1W4 (immer noch)
+5 über SG  → 2W4
+9 über SG  → 3W4
+```
+</CodeGroup>
+
+## Rüstungen
+
+**Rüstungen** bieten Schutz gegen verschiedene Schadensarten. Die Kurznotation ist **STÄ|ATH|GES + RES**:
+
+<Note>
+Physische Rüstungen sind immer **andauernd** und permanent. Durch Zauber oder Talente erzeugte Rüstungen sind meist **abbauend** und nur temporär.
+</Note>
+
+### Übliche Rüstungswerte
+
+| Rüstung | STÄ | ATH | GES | RES |
+|:--------|:---:|:---:|:---:|:---:|
+| Plattenrüstung | 6 | 10 | 8 | - |
+| Gambeson | 3 | 2 | 1 | - |
+| Umhang der Feuerresistenz | 1 | 0 | 0 | +4 Feuer |
+
+### Schadensarten
+
+<AccordionGroup>
+  <Accordion title="Physischer Schaden">
+    - **Schmetterschaden**: Stumpfe Waffen, Keulen, Kampfstäbe (Stärke)
+    - **Schnittschaden**: Klingen, Schwerter, Äxte (Athletik)
+    - **Stichschaden**: Lanzen, Speere, spitze Geschosse (Geschick)
+  </Accordion>
+  
+  <Accordion title="Elementarer Schaden">
+    - Eis / Kälte
+    - Feuer / Hitze
+    - Elektrisch / Blitz
+  </Accordion>
+  
+  <Accordion title="Verschleißschaden">
+    - Säure
+    - Gift
+    - Nekrotisch
+  </Accordion>
+  
+  <Accordion title="Durchdringender Schaden">
+    - Druckwellen / Macht
+    - Schall
+  </Accordion>
+  
+  <Accordion title="Mystischer Schaden">
+    - Mental
+    - Strahlend
+  </Accordion>
+</AccordionGroup>
+
+## Resistenzen
+
+**Resistenzen** ermöglichen es, einen Teil des eingehenden Schadens der entsprechenden Art zu ignorieren (Reduktion bis Minimum 0).
+
+### Arten von Resistenzen
+
+#### Elementare Resistenzen
+- Feuerresistenz
+- Kälteresistenz
+- Blitzresistenz
+
+#### Verschleißresistenz
+- Säureresistenz
+- Giftresistenz
+- Nekrotische Resistenz
+
+#### Mystische Resistenzen
+- Mentale Resistenz
+- Strahlungsresistenz
+
+### Abbauende vs. Andauernde Resistenzen
+
+<Tabs>
+  <Tab title="Abbauend">
+    **Abbauende Resistenzen** sinken im Kampf mit jedem absorbierten Treffer. Sie fungieren als **zusätzliche Ausdauer** gegen bestimmte Angriffsarten.
+    
+    - Regenerieren während der Langen Rast
+    - Können über Zauber/Talente erhöht werden
+    - Sind **stapelbar**
+  </Tab>
+  
+  <Tab title="Andauernd">
+    **Andauernde Resistenzen** bleiben während des gesamten Kampfes vorhanden und reduzieren jeden Schaden um die Höhe der Resistenz.
+    
+    - Funktionieren ähnlich wie Rüstungen
+    - Nur **einmalig pro Quelle** anwendbar
+    - Der **größte Resistenzwert** wird verwendet
+    
+    Erlaubte Quellen:
+    - Natürliche Resistenz
+    - Eigenschaft
+    - Talent/Zauber
+    - Rüstung/Ausrüstung
+  </Tab>
+</Tabs>
+
+### Sonderregelungen
+
+#### Negative Resistenz
+
+<Warning>
+Negative Resistenzwerte bedeuten **Anfälligkeit** und **erhöhen** den erlittenen Schaden der entsprechenden Art.
+</Warning>
+
+#### Schmerzresistenz
+
+Schmerzresistenz ist eine Ausnahme:
+
+- Bietet Schutz gegen **jegliche Schadensart**
+- Kann aber immer nur **die Hälfte** des erhaltenen Schadens absorbieren
+- Die andere Hälfte greift die Ausdauer an
+- Bei ungeradem Schaden absorbiert Schmerzresistenz die höhere Hälfte (19 Schaden → 10 Schmerzresistenz + 9 Ausdauer)
+- Ist **immer abbauend**
+
+<Info>
+Es macht wenig Sinn, einer Kreatur mehr Schmerzresistenz zu geben, als sie Ausdauer hat.
+</Info>
+
+## Kampfunfähigkeit & Tod
+
+### Bei 0 Ausdauer
+
+**NSC**: Sterben üblicherweise sofort (außer bei Tavernenschlägerei, Übungskampf, etc.)
+
+**Spielercharaktere**: Können durch **Todesrettungswürfe** wieder aufstehen
+
+### Todesrettungswürfe
+
+<Steps>
+  <Step title="Würfelmechanik">
+    Jede Runde: **W20** ohne Modifikatoren gegen **SG 10**
+  </Step>
+  
+  <Step title="3 Erfolge">
+    Der Charakter steht wieder mit **1 Ausdauerpunkt** auf (verbesserbar durch Talente/Eigenschaften/Widerstandsbonus)
+  </Step>
+  
+  <Step title="3 Fehlschläge">
+    Der Charakter ist für den Rest des Kampfes besiegt und stirbt ohne Rettung durch Verbündete
+  </Step>
+</Steps>
+
+#### Besondere Würfe
+
+- **Kritischer Fehlschlag (1)**: Zählt als **doppelter Fehlschlag**
+- **Kritischer Erfolg (20)**: Charakter steht **sofort** wieder auf
+- **Schaden während Kampfunfähigkeit**: Zählt **einmalig pro Runde** als versagter Rettungswurf (man kann dennoch selbst werfen)
+
+<Warning>
+Nimmt der Charakter Schaden in Höhe der **Gesamtausdauer** aus einer einzigen Quelle, gilt er **augenblicklich** als besiegt und kann nicht länger am Kampf teilnehmen.
+</Warning>
+
+### Verletzungen
+
+Verletzungen passieren, wenn beim Verteidigen eine **1** gewürfelt wird:
+
+- Verletzung = **sofortiger Schaden** auf die **Maximale Ausdauer**
+- Müssen außerhalb des Kampfes behandelt werden
+- Können schlimmer werden, wenn unbehandelt
+
+#### Medizinische Behandlung
+
+- **Heilkunde-Wurf**: Ergebnis über 10 in W4 (max. 1 pro Tag)
+- **Kritischer Erfolg**: 1W4 extra
+- **Selbstbehandlung**: Nur möglich bei bestandenem KON-RW (10 + Verletzung)
+
+#### Natürliche Wundheilung
+
+Zu Beginn der Langen Rast:
+
+<Steps>
+  <Step title="Konstitutions-Rettungswurf">
+    **SG = 10 + Verletzung**
+  </Step>
+  
+  <Step title="Bei Erfolg">
+    Maximale Ausdauer heilt um **1W4 + Widerstandsbonus**
+    
+    **Kritischer Erfolg**: 1W4 extra
+  </Step>
+  
+  <Step title="Bei Kritischem Versagen">
+    Schaden durch Verletzung **verdoppelt** sich (Minimum: 1 verbleibende Maximale Ausdauer)
+    
+    Ab diesem Punkt beginnen normale Todesrettungswürfe zu Beginn jeder Langen Rast
+  </Step>
+</Steps>
+
+### Tod
+
+Ein Spielercharakter **stirbt**, wenn:
+
+1. Ausdauer auf den **Negativwert der normalen Ausdauer** sinkt
+2. **Maximale Ausdauer** auf **0** sinkt
+3. Ein **Attribut** den Wert **0** annimmt
+
+<Warning>
+NSC sterben fast immer, sobald ihre Ausdauer auf **0** fällt.
+</Warning>

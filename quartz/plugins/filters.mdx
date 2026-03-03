@@ -1,0 +1,483 @@
+---
+title: Filter Plugins
+description: Control which content gets published in Quartz
+---
+
+Filter plugins determine which content should be published. They run after transformers process the content but before emitters generate output files.
+
+## How Filters Work
+
+Each filter implements a `shouldPublish` function that receives the processed content and returns:
+- `true` - Publish the content
+- `false` - Exclude from build
+
+```typescript
+export type QuartzFilterPluginInstance = {
+  name: string
+  shouldPublish(ctx: BuildCtx, content: ProcessedContent): boolean
+}
+```
+
+<Tip>
+  All filters must return `true` for content to be published. If any filter returns `false`, the content is excluded.
+</Tip>
+
+## Built-in Filters
+
+### RemoveDrafts
+
+Excludes content marked as draft in frontmatter.
+
+```typescript title="Configuration"
+Plugin.RemoveDrafts()
+```
+
+**Implementation:**
+
+```typescript title="quartz/plugins/filters/draft.ts"
+import { QuartzFilterPlugin } from "../types"
+
+export const RemoveDrafts: QuartzFilterPlugin<{}> = () => ({
+  name: "RemoveDrafts",
+  shouldPublish(_ctx, [_tree, vfile]) {
+    const draftFlag: boolean =
+      vfile.data?.frontmatter?.draft === true || 
+      vfile.data?.frontmatter?.draft === "true"
+    return !draftFlag
+  },
+})
+```
+
+**Usage:**
+
+Mark any page as draft to exclude it from the build:
+
+<CodeGroup>
+```yaml title="Draft Page"
+---
+title: Work in Progress
+draft: true
+---
+
+This page won't be published.
+```
+
+```yaml title="Published Page"
+---
+title: Ready for Publication
+draft: false  # or omit entirely
+---
+
+This page will be published.
+```
+</CodeGroup>
+
+<Note>
+  Both `draft: true` and `draft: "true"` (string) are recognized as draft.
+</Note>
+
+---
+
+### ExplicitPublish
+
+Only publishes content explicitly marked for publication. This is the opposite of `RemoveDrafts` - content is **excluded by default** unless marked as `publish: true`.
+
+```typescript title="Configuration"
+Plugin.ExplicitPublish()
+```
+
+**Implementation:**
+
+```typescript title="quartz/plugins/filters/explicit.ts"
+import { QuartzFilterPlugin } from "../types"
+
+export const ExplicitPublish: QuartzFilterPlugin = () => ({
+  name: "ExplicitPublish",
+  shouldPublish(_ctx, [_tree, vfile]) {
+    return (
+      vfile.data?.frontmatter?.publish === true || 
+      vfile.data?.frontmatter?.publish === "true"
+    )
+  },
+})
+```
+
+**Usage:**
+
+<CodeGroup>
+```yaml title="Published Page"
+---
+title: Public Content
+publish: true
+---
+
+Only this page will be published.
+```
+
+```yaml title="Excluded Page"
+---
+title: Private Notes
+# No publish field - excluded by default
+---
+
+This won't be published.
+```
+</CodeGroup>
+
+<Warning>
+  Use `ExplicitPublish` **instead of** `RemoveDrafts`, not in addition to it. Using both will require content to have both `publish: true` and `draft: false`.
+</Warning>
+
+---
+
+## Choosing Between Filters
+
+<Tabs>
+  <Tab title="RemoveDrafts (Default)">
+    **Best for:** Most sites where content is public by default
+    
+    ```typescript
+    filters: [Plugin.RemoveDrafts()]
+    ```
+    
+    **Behavior:**
+    - ✅ Content published by default
+    - ❌ Explicitly mark drafts with `draft: true`
+    - 👍 Less frontmatter required
+    - 📝 Good for blogs and documentation
+  </Tab>
+  
+  <Tab title="ExplicitPublish">
+    **Best for:** Private notes or selective publishing
+    
+    ```typescript
+    filters: [Plugin.ExplicitPublish()]
+    ```
+    
+    **Behavior:**
+    - ❌ Content excluded by default
+    - ✅ Explicitly mark published with `publish: true`
+    - 🔒 More secure for private vaults
+    - 📝 Good for Obsidian vaults with mixed content
+  </Tab>
+  
+  <Tab title="No Filters">
+    **Best for:** Publishing everything
+    
+    ```typescript
+    filters: []
+    ```
+    
+    **Behavior:**
+    - ✅ All content published
+    - ⚠️ No draft support
+    - 🚀 Fastest builds
+    - 📝 Good for simple sites
+  </Tab>
+</Tabs>
+
+## Creating Custom Filters
+
+### Basic Custom Filter
+
+```typescript title="plugins/filters/myFilter.ts"
+import { QuartzFilterPlugin } from "../types"
+
+export const PublishAfterDate: QuartzFilterPlugin = () => ({
+  name: "PublishAfterDate",
+  shouldPublish(_ctx, [_tree, vfile]) {
+    const publishDate = vfile.data?.frontmatter?.publishDate
+    
+    if (!publishDate) return true // No date = publish
+    
+    const date = new Date(publishDate)
+    const now = new Date()
+    
+    return date <= now // Only publish if date has passed
+  },
+})
+```
+
+**Usage:**
+
+```yaml
+---
+title: Future Post
+publishDate: 2026-12-25
+---
+
+This won't be published until Christmas 2026.
+```
+
+### Filter with Options
+
+```typescript title="plugins/filters/categoryFilter.ts"
+import { QuartzFilterPlugin } from "../types"
+
+export interface Options {
+  allowedCategories: string[]
+  defaultAllow: boolean
+}
+
+const defaultOptions: Options = {
+  allowedCategories: [],
+  defaultAllow: true,
+}
+
+export const CategoryFilter: QuartzFilterPlugin<Partial<Options>> = (userOpts) => {
+  const opts = { ...defaultOptions, ...userOpts }
+  
+  return {
+    name: "CategoryFilter",
+    shouldPublish(_ctx, [_tree, vfile]) {
+      const category = vfile.data?.frontmatter?.category
+      
+      if (!category) return opts.defaultAllow
+      
+      return opts.allowedCategories.includes(category)
+    },
+  }
+}
+```
+
+**Configuration:**
+
+```typescript title="quartz.config.ts"
+import { CategoryFilter } from "./quartz/plugins/filters/categoryFilter"
+
+const config: QuartzConfig = {
+  plugins: {
+    filters: [
+      CategoryFilter({
+        allowedCategories: ["blog", "tutorial"],
+        defaultAllow: false,
+      }),
+    ],
+  },
+}
+```
+
+### Advanced Filter: Tag-based Publishing
+
+```typescript title="plugins/filters/tagFilter.ts"
+import { QuartzFilterPlugin } from "../types"
+
+export interface Options {
+  requiredTags: string[]
+  excludedTags: string[]
+  mode: "any" | "all" // any = OR, all = AND
+}
+
+const defaultOptions: Options = {
+  requiredTags: [],
+  excludedTags: [],
+  mode: "any",
+}
+
+export const TagFilter: QuartzFilterPlugin<Partial<Options>> = (userOpts) => {
+  const opts = { ...defaultOptions, ...userOpts }
+  
+  return {
+    name: "TagFilter",
+    shouldPublish(_ctx, [_tree, vfile]) {
+      const tags = vfile.data?.frontmatter?.tags || []
+      
+      // Exclude if has any excluded tag
+      const hasExcluded = opts.excludedTags.some(tag => tags.includes(tag))
+      if (hasExcluded) return false
+      
+      // If no required tags, allow
+      if (opts.requiredTags.length === 0) return true
+      
+      // Check required tags based on mode
+      if (opts.mode === "any") {
+        return opts.requiredTags.some(tag => tags.includes(tag))
+      } else {
+        return opts.requiredTags.every(tag => tags.includes(tag))
+      }
+    },
+  }
+}
+```
+
+**Usage:**
+
+<Tabs>
+  <Tab title="Require Any Tag">
+    ```typescript title="quartz.config.ts"
+    filters: [
+      TagFilter({
+        requiredTags: ["public", "published"],
+        mode: "any",
+      }),
+    ]
+    ```
+    
+    Publishes content with either `public` OR `published` tag.
+  </Tab>
+  
+  <Tab title="Require All Tags">
+    ```typescript title="quartz.config.ts"
+    filters: [
+      TagFilter({
+        requiredTags: ["ready", "reviewed"],
+        mode: "all",
+      }),
+    ]
+    ```
+    
+    Publishes only content with both `ready` AND `reviewed` tags.
+  </Tab>
+  
+  <Tab title="Exclude Tags">
+    ```typescript title="quartz.config.ts"
+    filters: [
+      TagFilter({
+        excludedTags: ["private", "draft"],
+      }),
+    ]
+    ```
+    
+    Excludes content with `private` or `draft` tags.
+  </Tab>
+</Tabs>
+
+## Multiple Filters
+
+You can combine multiple filters. Content must pass **all** filters to be published.
+
+```typescript title="quartz.config.ts"
+const config: QuartzConfig = {
+  plugins: {
+    filters: [
+      Plugin.RemoveDrafts(),
+      PublishAfterDate(),
+      TagFilter({
+        excludedTags: ["private"],
+      }),
+    ],
+  },
+}
+```
+
+<Info>
+  With multiple filters, content is excluded if **any** filter returns `false`.
+</Info>
+
+## Filter Access to Data
+
+Filters have access to processed content data:
+
+```typescript
+shouldPublish(_ctx, [tree, vfile]) {
+  // vfile.data contains:
+  const frontmatter = vfile.data.frontmatter  // Parsed frontmatter
+  const slug = vfile.data.slug                // Page slug
+  const filePath = vfile.data.filePath        // Original file path
+  const text = vfile.data.text                // Processed text content
+  const tags = vfile.data.frontmatter?.tags   // Tags
+  
+  // tree contains the HTML AST
+  // ctx contains build context
+  
+  return true
+}
+```
+
+## Common Filter Patterns
+
+<AccordionGroup>
+  <Accordion title="Filter by File Location">
+    ```typescript
+    shouldPublish(_ctx, [_tree, vfile]) {
+      const path = vfile.data.filePath!
+      return !path.includes("/private/")
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Filter by Word Count">
+    ```typescript
+    shouldPublish(_ctx, [_tree, vfile]) {
+      const text = vfile.data.text || ""
+      const wordCount = text.split(/\s+/).length
+      return wordCount >= 100 // Only publish substantial content
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Filter by Custom Field">
+    ```typescript
+    shouldPublish(_ctx, [_tree, vfile]) {
+      const status = vfile.data.frontmatter?.status
+      return status === "published" || status === "public"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Environment-based Filter">
+    ```typescript
+    shouldPublish(ctx, [_tree, vfile]) {
+      const isDev = ctx.argv.serve
+      const isInternal = vfile.data.frontmatter?.internal
+      
+      // Show internal content in dev, hide in production
+      return isDev || !isInternal
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Check>
+  **Keep filters simple** - Complex logic can slow down builds
+</Check>
+
+<Check>
+  **Fail safe** - Return `true` by default if data is missing
+</Check>
+
+<Check>
+  **Log filtered content** - Help users understand what's excluded
+</Check>
+
+<Check>
+  **Document frontmatter** - Explain required fields to users
+</Check>
+
+## Debugging Filters
+
+Add logging to understand filter behavior:
+
+```typescript
+export const DebugFilter: QuartzFilterPlugin = () => ({
+  name: "DebugFilter",
+  shouldPublish(_ctx, [_tree, vfile]) {
+    const title = vfile.data.frontmatter?.title
+    const draft = vfile.data.frontmatter?.draft
+    
+    console.log(`Checking: ${title}`)    console.log(`  Draft: ${draft}`)
+    console.log(`  Decision: ${!draft}`)
+    
+    return !draft
+  },
+})
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Plugin Overview" icon="puzzle-piece" href="./overview">
+    Understanding the plugin system
+  </Card>
+  <Card title="Transformer Plugins" icon="wand-magic-sparkles" href="./transformers">
+    Process content before filtering
+  </Card>
+  <Card title="Emitter Plugins" icon="file-export" href="./emitters">
+    Generate output after filtering
+  </Card>
+  <Card title="VFile Documentation" icon="book" href="https://github.com/vfile/vfile">
+    Understanding file data structure
+  </Card>
+</CardGroup>

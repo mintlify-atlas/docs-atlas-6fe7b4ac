@@ -1,0 +1,227 @@
+---
+title: Components Overview
+description: Understanding the Quartz component system and architecture
+---
+
+Quartz uses a component-based architecture to build your static site. Components are TypeScript/Preact functions that control how your content is rendered and displayed.
+
+## What are Components?
+
+Components in Quartz are modular, reusable pieces that make up your site's layout and functionality. Each component is responsible for rendering a specific part of your site, such as navigation, search, or content display.
+
+### Component Architecture
+
+All Quartz components follow a consistent pattern defined by the `QuartzComponent` type:
+
+```typescript quartz/components/types.ts
+export type QuartzComponentProps = {
+  ctx: BuildCtx
+  externalResources: StaticResources
+  fileData: QuartzPluginData
+  cfg: GlobalConfiguration
+  children: (QuartzComponent | JSX.Element)[]
+  tree: Node
+  allFiles: QuartzPluginData[]
+  displayClass?: "mobile-only" | "desktop-only"
+} & JSX.IntrinsicAttributes & {
+    [key: string]: any
+  }
+
+export type QuartzComponent = ComponentType<QuartzComponentProps> & {
+  css?: StringResource
+  beforeDOMLoaded?: StringResource
+  afterDOMLoaded?: StringResource
+}
+```
+
+Each component can optionally include:
+- **CSS styles** - Component-specific styling
+- **beforeDOMLoaded script** - JavaScript that runs before the DOM is ready
+- **afterDOMLoaded script** - JavaScript that runs after the DOM is loaded
+
+## Component Types
+
+Quartz components fall into several categories:
+
+<AccordionGroup>
+  <Accordion title="Layout Components">
+    Components that define the structure and layout of your pages:
+    - **Head** - HTML head metadata
+    - **PageTitle** - Site title in the header
+    - **Header** - Custom header content
+    - **Footer** - Site footer with links
+    - **Spacer** - Adds vertical spacing
+  </Accordion>
+
+  <Accordion title="Navigation Components">
+    Components that help users navigate your site:
+    - **Explorer** - File tree navigation
+    - **Breadcrumbs** - Hierarchical navigation trail
+    - **TableOfContents** - Page section navigation
+    - **Search** - Full-text search functionality
+    - **Graph** - Interactive link visualization
+  </Accordion>
+
+  <Accordion title="Content Components">
+    Components that display page content and metadata:
+    - **Content** - Main page content
+    - **ArticleTitle** - Article heading
+    - **ContentMeta** - Date and reading time
+    - **TagList** - Page tags
+    - **Backlinks** - Pages linking to current page
+    - **RecentNotes** - Latest content list
+  </Accordion>
+
+  <Accordion title="Utility Components">
+    Components that add functionality or control display:
+    - **Darkmode** - Theme toggle button
+    - **ReaderMode** - Reader mode toggle
+    - **Comments** - Giscus comments integration
+    - **DesktopOnly** - Show only on desktop
+    - **MobileOnly** - Show only on mobile
+    - **Flex** - Flexbox layout wrapper
+    - **ConditionalRender** - Conditionally display components
+  </Accordion>
+
+  <Accordion title="Page Components">
+    Full-page templates for different content types:
+    - **Content** - Single page display
+    - **TagContent** - Tag listing page
+    - **FolderContent** - Folder listing page
+    - **NotFound** - 404 error page
+  </Accordion>
+</AccordionGroup>
+
+## Component Configuration
+
+Components are configured in your `quartz.layout.ts` file. Quartz provides two main layout configurations:
+
+### Shared Layout
+
+Components that appear on every page:
+
+```typescript quartz.layout.ts
+export const sharedPageComponents: SharedLayout = {
+  head: Component.Head(),
+  header: [],
+  afterBody: [],
+  footer: Component.Footer({
+    links: {
+      GitHub: "https://github.com/jackyzha0/quartz",
+      "Discord Community": "https://discord.gg/cRFFHYye7t",
+    },
+  }),
+}
+```
+
+### Page Layout
+
+Components positioned in different areas of your pages:
+
+```typescript quartz.layout.ts
+export const defaultContentPageLayout: PageLayout = {
+  beforeBody: [
+    Component.Breadcrumbs(),
+    Component.ArticleTitle(),
+    Component.ContentMeta(),
+    Component.TagList(),
+  ],
+  left: [
+    Component.PageTitle(),
+    Component.MobileOnly(Component.Spacer()),
+    Component.Search(),
+    Component.Darkmode(),
+    Component.Explorer(),
+  ],
+  right: [
+    Component.Graph(),
+    Component.DesktopOnly(Component.TableOfContents()),
+    Component.Backlinks(),
+  ],
+}
+```
+
+## Layout Areas
+
+Components can be placed in five main areas:
+
+<CardGroup cols={2}>
+  <Card title="head" icon="code">
+    HTML `<head>` section - metadata, scripts, and styles
+  </Card>
+  <Card title="header" icon="bars">
+    Top of every page - typically navigation or branding
+  </Card>
+  <Card title="beforeBody" icon="arrow-up">
+    Above main content - breadcrumbs, title, metadata
+  </Card>
+  <Card title="left" icon="sidebar">
+    Left sidebar - navigation, search, explorer
+  </Card>
+  <Card title="right" icon="sidebar-flip">
+    Right sidebar - table of contents, graph, backlinks
+  </Card>
+  <Card title="footer" icon="arrow-down">
+    Bottom of every page - copyright, links
+  </Card>
+</CardGroup>
+
+## Component Constructor Pattern
+
+Most Quartz components use a constructor pattern that allows configuration:
+
+```typescript
+export default ((userOpts?: Partial<Options>) => {
+  const opts: Options = { ...defaultOptions, ...userOpts }
+  
+  const MyComponent: QuartzComponent = (props: QuartzComponentProps) => {
+    // Component implementation
+    return <div>...</div>
+  }
+  
+  MyComponent.css = style
+  MyComponent.afterDOMLoaded = script
+  
+  return MyComponent
+}) satisfies QuartzComponentConstructor
+```
+
+This pattern enables:
+- Default options that can be overridden
+- Type-safe configuration
+- Consistent API across all components
+
+## Props and Context
+
+Components receive rich context through their props:
+
+<ParamField path="fileData" type="QuartzPluginData">
+  Current page data including frontmatter, content, and metadata
+</ParamField>
+
+<ParamField path="allFiles" type="QuartzPluginData[]">
+  All files in your vault for cross-referencing
+</ParamField>
+
+<ParamField path="cfg" type="GlobalConfiguration">
+  Global Quartz configuration from `quartz.config.ts`
+</ParamField>
+
+<ParamField path="displayClass" type="string">
+  Optional CSS class for responsive display (`mobile-only` or `desktop-only`)
+</ParamField>
+
+<ParamField path="tree" type="Node">
+  AST representation of the current page content
+</ParamField>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Built-in Components" icon="blocks" href="/quartz/components/built-in">
+    Explore all available components and their configuration options
+  </Card>
+  <Card title="Custom Components" icon="code" href="/quartz/components/custom">
+    Learn how to create your own custom components
+  </Card>
+</CardGroup>

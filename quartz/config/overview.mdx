@@ -1,0 +1,138 @@
+---
+title: Configuration Overview
+description: Learn how to configure your Quartz site using quartz.config.ts and quartz.layout.ts
+---
+
+Quartz is configured through two primary files in your project root:
+
+- `quartz.config.ts` - Site settings, theme, and plugins
+- `quartz.layout.ts` - Page layout and component placement
+
+## QuartzConfig Structure
+
+The main configuration file exports a `QuartzConfig` object with two main sections:
+
+```typescript
+const config: QuartzConfig = {
+  configuration: {
+    // Site settings and theme
+  },
+  plugins: {
+    // Content processing pipeline
+  }
+}
+```
+
+## Configuration Sections
+
+<CardGroup cols={2}>
+  <Card title="Site Settings" icon="gear" href="/quartz/config/site-settings">
+    Configure page title, locale, base URL, and site behavior
+  </Card>
+  <Card title="Theme" icon="palette" href="/quartz/config/theme">
+    Customize colors, typography, and fonts for light and dark modes
+  </Card>
+  <Card title="Layout" icon="layout" href="/quartz/config/layout">
+    Organize components and define page structure
+  </Card>
+  <Card title="Plugins" icon="plug" href="/quartz/config/plugins">
+    Add transformers, filters, and emitters to extend functionality
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+Here's a minimal Quartz configuration:
+
+```typescript quartz.config.ts
+import { QuartzConfig } from "./quartz/cfg"
+import * as Plugin from "./quartz/plugins"
+
+const config: QuartzConfig = {
+  configuration: {
+    pageTitle: "My Digital Garden",
+    enableSPA: true,
+    enablePopovers: true,
+    locale: "en-US",
+    baseUrl: "example.com",
+    theme: {
+      typography: {
+        header: "Schibsted Grotesk",
+        body: "Source Sans Pro",
+        code: "IBM Plex Mono",
+      },
+    },
+  },
+  plugins: {
+    transformers: [Plugin.FrontMatter(), Plugin.GitHubFlavoredMarkdown()],
+    filters: [Plugin.RemoveDrafts()],
+    emitters: [Plugin.ContentPage(), Plugin.Assets()],
+  },
+}
+
+export default config
+```
+
+## Configuration Reference
+
+### configuration
+
+The `configuration` object contains all site-wide settings:
+
+<ResponseField name="pageTitle" type="string" required>
+  The title displayed in the browser tab and site header
+</ResponseField>
+
+<ResponseField name="pageTitleSuffix" type="string">
+  Suffix appended to page titles (e.g., " - My Site")
+</ResponseField>
+
+<ResponseField name="enableSPA" type="boolean" default={true}>
+  Enable Single Page Application mode for faster navigation
+</ResponseField>
+
+<ResponseField name="enablePopovers" type="boolean" default={true}>
+  Show content previews when hovering over links
+</ResponseField>
+
+<ResponseField name="locale" type="string" default="en-US">
+  Language and region code (e.g., "de-DE", "fr-FR")
+</ResponseField>
+
+<ResponseField name="baseUrl" type="string" required>
+  Your site's domain without protocol (e.g., "example.com")
+</ResponseField>
+
+<ResponseField name="ignorePatterns" type="string[]">
+  Folders or files to exclude from the build
+</ResponseField>
+
+<ResponseField name="defaultDateType" type="'created' | 'modified'" default="created">
+  Which date to display by default
+</ResponseField>
+
+<ResponseField name="theme" type="ThemeConfig">
+  Theme configuration including colors, typography, and fonts
+</ResponseField>
+
+### plugins
+
+The `plugins` object defines the content processing pipeline:
+
+- **transformers** - Process content during the build (Markdown, syntax highlighting, etc.)
+- **filters** - Determine which pages to include/exclude
+- **emitters** - Generate output files (HTML pages, RSS, sitemap, etc.)
+
+## Next Steps
+
+<Steps>
+  <Step title="Configure Site Settings">
+    Set up your site title, locale, and base URL in [Site Settings](/quartz/config/site-settings)
+  </Step>
+  <Step title="Customize Theme">
+    Define your color scheme and typography in [Theme Configuration](/quartz/config/theme)
+  </Step>
+  <Step title="Design Layout">
+    Arrange components and structure your pages in [Layout Configuration](/quartz/config/layout)
+  </Step>
+</Steps>

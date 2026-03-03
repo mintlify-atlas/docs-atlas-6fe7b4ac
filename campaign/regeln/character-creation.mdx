@@ -1,0 +1,266 @@
+---
+title: Charaktererstellung
+description: Regeln für die Erstellung neuer Charaktere in der Siebenlande-Kampagne
+---
+
+## Übersicht
+
+Die Charaktererstellung folgt einem punktebasierten System. Spieler verteilen **Charakterpunkte**, die vom Spielleiter vergeben werden, auf Attribute, Fähigkeiten und andere Charaktermerkmale.
+
+## Attribute
+
+Jeder Charakter besitzt **8 Attribute** mit Werten von **1** bis **20**. Der Standardwert ist **10** (ohne Boni/Mali).
+
+<AccordionGroup>
+  <Accordion title="Stärke (STÄ)">
+    Körperliche Kraft eines Charakters. Beeinflusst:
+    - Schaden mit stumpfen Waffen
+    - Tragen schwerer Rüstungen
+    - Nutzen bestimmter Waffen
+  </Accordion>
+  
+  <Accordion title="Athletik (ATH)">
+    Körperbeherrschung, Gewandtheit und sportliche Begabung. Beeinflusst:
+    - Schaden von Klingenwaffen
+    - Bewegungsgeschwindigkeit
+  </Accordion>
+  
+  <Accordion title="Geschick (GES)">
+    Talent für Handarbeiten und Auge-Hand-Koordination. Beeinflusst:
+    - Schaden von Stichwaffen
+    - Präzision beim Fernkampf
+    - Spielen von Instrumenten (z.B. Laute)
+  </Accordion>
+  
+  <Accordion title="Konstitution (KON)">
+    Gesundheit und Ausdauer. Beeinflusst:
+    - Immunität gegen Krankheiten und Vergiftung
+    - Durchhaltevermögen
+    - **Ausdauer-/Lebenspunkte im Kampf**
+  </Accordion>
+  
+  <Accordion title="Wahrnehmung (WAH)">
+    Sinneswahrnehmung und Reflexe. 
+    
+    <Note>
+    Der Wahrnehmungswert gilt nicht zwangsläufig für alle Sinne. Ein blinder Charakter mit 20 Wahrnehmung sieht nichts, hört aber hervorragend.
+    </Note>
+  </Accordion>
+  
+  <Accordion title="Intelligenz (INT)">
+    Lernfähigkeit und logisches Denkvermögen. Beeinflusst:
+    - Talent für Sprachen
+    - Improvisationsfähigkeit beim Zaubern
+  </Accordion>
+  
+  <Accordion title="Weisheit (WEI)">
+    Allgemeines Wissen über diverse Fähigkeiten. Beeinflusst:
+    - Qualität handwerklicher Leistungen
+    - Willenskraft
+  </Accordion>
+  
+  <Accordion title="Charisma (CHA)">
+    Überzeugungskraft, Eloquenz und Führungsstärke.
+    
+    <Warning>
+    Charisma verändert **nicht** die körperliche Attraktivität, sehr wohl jedoch die Fähigkeit, mit Worten zu betören.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+### Rechnen mit Attributen
+
+Der Bonus/Malus ist **linear** und abhängig von der Differenz zu 10:
+
+- **11** = **+1**, **12** = **+2**, **13** = **+3**, etc.
+- **9** = **-1**, **8** = **-2**, **7** = **-3**, etc.
+
+<CodeGroup>
+```text Beste Möglichkeit
+Wurf: 20
+Attribut: 20 (+10)
+Ergebnis: 30
+```
+
+```text Schlechteste Möglichkeit
+Wurf: beliebig niedrig
+Minimum: 1 (auch bei negativen Modifikatoren)
+```
+</CodeGroup>
+
+#### Beispielrechnung
+
+<Steps>
+  <Step title="Ausgangssituation">
+    Charakter mit **Attributswert 5** und **Fähigkeitswert 5** wirft eine **3**
+  </Step>
+  
+  <Step title="Attribut anwenden">
+    Attribut 5 gibt **-5** Malus → Wurf 3 wird auf **1** reduziert (Minimum!)
+    
+    Der übrige **-3** Malus verfällt
+  </Step>
+  
+  <Step title="Fähigkeit anwenden">
+    Fähigkeitswert 5 gibt **+5** Bonus → **1 + 5 = 6**
+  </Step>
+  
+  <Step title="Endergebnis">
+    **Endergebnis: 6**
+  </Step>
+</Steps>
+
+### Attributskosten
+
+Attribute zu steigern kostet **Charakterpunkte**. Jeder Wert kostet Punkte abhängig von der Entfernung zum Grundwert **10**:
+
+- **10 → 11**: 1 Punkt
+- **11 → 12**: 2 Punkte
+- **12 → 13**: 3 Punkte
+- etc.
+
+<Info>
+**Beispiel**: Von **10 auf 15** erhöhen = 1+2+3+4+5 = **15 Punkte**
+</Info>
+
+Die Kosten gelten auch umgekehrt:
+- **8 → 9**: 2 Punkte
+- **9 → 10**: 1 Punkt
+
+## Fähigkeiten
+
+**Fähigkeiten** sind alltägliche Befähigungen, die Boni auf entsprechende Würfe geben. Der Standardwert ist **0**.
+
+<Note>
+Fähigkeitskosten berechnen sich **identisch** zu Attributskosten. Eine Fähigkeit mit Wert 3 kostet 6 Punkte (1+2+3) und bringt +3 auf Würfe.
+</Note>
+
+### Fähigkeiten nach Attribut
+
+#### Stärke
+- **Kraftakt**: Längerfristige Anstrengung (Armdrücken, schwere Lasten tragen, Tore aufstemmen)
+
+#### Athletik
+- **Akrobatik**: Gleichgewicht, Hindernisse überwinden, Springen, Abrollen
+- **Heimlichkeit**: Leise bewegen, in Schatten verborgen bleiben
+- **Klettern**: Mauern, Seile, Monster erklimmen
+
+#### Geschick
+- **Fesselungskunst**: Knoten binden und lösen
+- **Fingerfertigkeit**: Schlossknacken, Taschendiebstahl, Taschenspielertricks
+- **Instrumente**: Blasinstrumente, Saiteninstrumente, Schlaginstrumente, Tasteninstrumente (jeweils eigene Fähigkeit)
+
+#### Konstitution
+- **Widerstand**: Gibt Schmerzresistenz im Kampf, Bonus bei natürlicher Wundheilung
+
+#### Wahrnehmung
+- **Einschätzen**: Gefahren erkennen, Lügen ertappen, Risiken einschätzen
+- **Spurensuche**: Fährten aufnehmen, Indizien sammeln, versteckte Mechanismen finden
+
+#### Intelligenz
+- **Entschlüsseln**: Runen ergründen, Chiffren entschlüsseln, magische Artefakte erkennen
+- **Motiv Erkennen**: Beweggründe erraten, Zweck einer Lüge erahnen, Verhalten voraussagen
+- **Nachforschen**: Wichtige Informationen finden, Folianten durchsuchen, Fragen stellen
+
+#### Weisheit
+- **Heilkunde**: Verletzungen behandeln, Kenntnisse über Arznei und Gifte
+- **Überlebenskunst**: In der Natur zurechtkommen, Fallen stellen, sichere Lager errichten
+- **Wissen**: Adel, Geografie, Geschichte, Gebräuche, Magie, Natur, Religion (jeweils eigene Kategorie)
+
+#### Charisma
+- **Auftreten**: Gesang, Rhetorik, Schauspiel, Tanzen (jeweils eigene Fähigkeit)
+- **Einschüchtern**: Feinde demoralisieren, Fügsamkeit erzwingen, im Kampf verängstigen
+- **Mit Kreaturen Umgehen**: Tiere beruhigen, besänftigen, verschrecken; Bonus auf alle Attributswürfe permanenter Begleiter
+- **Täuschen**: Lügen glaubhaft machen, falsche Versprechungen, bei Verträgen übervorteilen
+- **Überzeugen**: Erboste besänftigen, Skeptiker gewinnen, Partner um den Finger wickeln
+
+#### Handwerk
+
+Handwerk ordnet sich je nach Tätigkeit in ein Attribut ein. Charaktere erhalten handwerkliche Beschäftigungen basierend auf ihrem Hintergrund.
+
+## Ausdauer
+
+Die **Ausdauer** eines Charakters berechnet sich:
+
+```
+Basiswert + Konstitutionsmod. × (0.1 × Basiswert)
+```
+
+<Info>
+Einfach ausgedrückt: Für jeden Punkt in Konstitution über **10** erhält man **10%** der Basisausdauer hinzu. Bei Konstitution **20** erhält man **100%** zusätzlich.
+</Info>
+
+### Basisausdauer nach Größe
+
+- **Klein**: 15
+- **Mittelgroß**: 20
+- **Groß**: 30
+
+## Kompetenzen, Talente & Eigenschaften
+
+### Kompetenzen
+
+Kompetenzen auf Rettungswürfe und Fähigkeiten nach Stufe:
+
+| Stufe | Kompetenzen |
+|-------|-------------|
+| 0     | 2           |
+| 4     | +1          |
+| 8     | +2          |
+| 12    | +3          |
+| 16    | +4          |
+| 20    | +5          |
+
+### Talente
+
+Bei Charaktererstellung (Stufe 0): **1 Talent** + **2 weitere** nach Wahl
+
+| Stufe | Talente |
+|-------|--------|
+| 0     | 1 (+2) |
+| 3     | +1     |
+| 6     | +2     |
+| 9     | +3     |
+| 12    | +4     |
+| 15    | +5     |
+| 18    | +6     |
+
+<Note>
+**Talente** sind besondere Fähigkeiten, die das Repertoire im Kampf und außerhalb erweitern. Sie können aktiv oder passiv sein. Spieler können eigene Talente entwerfen, die vom Spielleiter zugelassen werden müssen.
+</Note>
+
+### Eigenschaften
+
+Bei Charaktererstellung: **1 Eigenschaft** + **2 weitere** nach Wahl
+
+<Warning>
+**Eigenschaften** sind passive Statuswerte. Nach der Charaktererstellung haben Spieler keine direkte Kontrolle mehr darüber, welche Eigenschaften sie erhalten oder verlieren.
+</Warning>
+
+## Charaktererstellung: Schritt-für-Schritt
+
+<Steps>
+  <Step title="Volk wählen">
+    Wähle eines der [spielbaren Völker](/campaign/regeln/playable-races) und notiere die Volksmerkmale
+  </Step>
+  
+  <Step title="Attribute verteilen">
+    Starte mit den Basis-Attributwerten deines Volkes und verteile Charakterpunkte
+  </Step>
+  
+  <Step title="Fähigkeiten wählen">
+    Investiere Charakterpunkte in Fähigkeiten, die zu deinem Charakter passen
+  </Step>
+  
+  <Step title="Talente & Eigenschaften">
+    Wähle 1 Talent + 2 weitere, sowie 1 Eigenschaft + 2 weitere
+  </Step>
+  
+  <Step title="Ausdauer berechnen">
+    Berechne deine Ausdauer basierend auf Basiswert und Konstitutionsmodifikator
+  </Step>
+  
+  <Step title="Ausrüstung & Hintergrund">
+    Vervollständige deinen Charakter mit Ausrüstung, Hintergrundgeschichte und Details
+  </Step>
+</Steps>

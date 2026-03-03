@@ -1,0 +1,355 @@
+---
+title: Build Command
+description: Build your Quartz site into static HTML files with live preview and hot reload
+---
+
+The `build` command transforms your Markdown content into a complete static website, with optional local development server and automatic rebuilding.
+
+## Basic Usage
+
+```bash
+npx quartz build [options]
+```
+
+## Command Options
+
+### Output Options
+
+<ParamField path="--output" type="string" default="public">
+  Output folder for generated static files.
+  
+  **Alias:** `-o`
+  
+  ```bash
+  npx quartz build --output ./dist
+  ```
+  
+  The build process generates a complete static site with HTML, CSS, JavaScript, and assets in this directory.
+</ParamField>
+
+### Development Server Options
+
+<ParamField path="--serve" type="boolean" default="false">
+  Run a local HTTP server to preview your Quartz site.
+  
+  ```bash
+  npx quartz build --serve
+  ```
+  
+  <Note>
+  Enabling `--serve` automatically enables `--watch` for a complete development experience.
+  </Note>
+  
+  The server provides:
+  - Live preview at `http://localhost:8080`
+  - Automatic page refresh on content changes
+  - Proper MIME type handling for all assets
+  - Smart URL redirects (e.g., `/page` → `/page.html`)
+</ParamField>
+
+<ParamField path="--port" type="number" default="8080">
+  Port to serve your local Quartz site on.
+  
+  ```bash
+  npx quartz build --serve --port 3000
+  ```
+</ParamField>
+
+<ParamField path="--wsPort" type="number" default="3001">
+  WebSocket port for hot-reload notifications.
+  
+  ```bash
+  npx quartz build --serve --wsPort 3002
+  ```
+  
+  <Info>
+  The WebSocket connection enables instant page updates when files change, without manual browser refresh.
+  </Info>
+</ParamField>
+
+<ParamField path="--baseDir" type="string" default="">
+  Base path to serve your local server on (useful for subdirectory deployments).
+  
+  ```bash
+  npx quartz build --serve --baseDir /docs
+  ```
+  
+  Your site will be available at `http://localhost:8080/docs`
+</ParamField>
+
+<ParamField path="--remoteDevHost" type="string" default="">
+  URL override for WebSocket connection when not developing on localhost.
+  
+  ```bash
+  npx quartz build --serve --remoteDevHost wss://myserver.com
+  ```
+  
+  Useful for remote development environments or cloud IDEs.
+</ParamField>
+
+### Watch Options
+
+<ParamField path="--watch" type="boolean" default="false">
+  Watch for file changes and rebuild automatically.
+  
+  ```bash
+  npx quartz build --watch
+  ```
+  
+  Monitors these file patterns:
+  - `**/*.ts` - TypeScript source files
+  - `**/*.tsx` - React components
+  - `**/*.scss` - Stylesheets
+  - `quartz/cli/*.js` - CLI scripts
+  - `quartz/static/**/*` - Static assets
+  - `package.json` - Dependencies
+</ParamField>
+
+### Performance Options
+
+<ParamField path="--concurrency" type="number">
+  Number of threads to use for parsing notes.
+  
+  ```bash
+  npx quartz build --concurrency 4
+  ```
+  
+  <Tip>
+  By default, Quartz automatically determines optimal concurrency based on your CPU. Only set this if you need to limit resource usage.
+  </Tip>
+</ParamField>
+
+<ParamField path="--bundleInfo" type="boolean" default="false">
+  Show detailed bundle information and analysis.
+  
+  ```bash
+  npx quartz build --bundleInfo
+  ```
+  
+  Displays:
+  - Number of files transpiled
+  - Bundle size in bytes
+  - Detailed metafile analysis
+</ParamField>
+
+### Common Options
+
+<ParamField path="--directory" type="string" default="content">
+  Directory containing your Markdown content files.
+  
+  **Alias:** `-d`
+  
+  ```bash
+  npx quartz build --directory ./my-notes
+  ```
+</ParamField>
+
+<ParamField path="--verbose" type="boolean" default="false">
+  Enable verbose logging for debugging.
+  
+  **Alias:** `-v`
+  
+  ```bash
+  npx quartz build --verbose
+  ```
+</ParamField>
+
+## Examples
+
+### Production Build
+
+Build your site for production deployment:
+
+```bash
+npx quartz build
+```
+
+This generates optimized static files in the `./public` directory.
+
+### Development Mode
+
+Start a local development server with hot reload:
+
+<CodeGroup>
+```bash Default Port
+npx quartz build --serve
+```
+
+```bash Custom Port
+npx quartz build --serve --port 3000
+```
+
+```bash With Base Path
+npx quartz build --serve --baseDir /docs
+```
+</CodeGroup>
+
+### Custom Output Directory
+
+Build to a different output folder:
+
+```bash
+npx quartz build --output ./dist
+```
+
+### Watch Mode (No Server)
+
+Rebuild on changes without starting a server:
+
+```bash
+npx quartz build --watch
+```
+
+### Debug Build
+
+Get detailed information about the build process:
+
+```bash
+npx quartz build --verbose --bundleInfo
+```
+
+## Build Process
+
+The build command performs these steps:
+
+<Steps>
+  <Step title="Configuration Loading">
+    Reads `quartz.config.ts` to understand your site configuration, plugins, and transformers.
+  </Step>
+  
+  <Step title="Source Transpilation">
+    Compiles TypeScript and SCSS files using esbuild with optimizations:
+    - Minifies whitespace and syntax
+    - Bundles dependencies
+    - Processes Sass/SCSS stylesheets
+    - Transpiles JSX/TSX components
+  </Step>
+  
+  <Step title="Content Processing">
+    Transforms Markdown files through configured plugins:
+    - Parses frontmatter
+    - Processes wikilinks
+    - Generates backlinks
+    - Applies transformers
+  </Step>
+  
+  <Step title="Static Generation">
+    Generates HTML pages, assets, and resources:
+    - Renders pages with layout
+    - Copies static files
+    - Generates search index
+    - Creates graph data
+  </Step>
+</Steps>
+
+## Development Server
+
+When using `--serve`, Quartz starts an HTTP server with these features:
+
+### Auto-Refresh
+
+WebSocket-based hot reload automatically refreshes your browser when:
+- Content files change
+- Configuration is updated
+- Components are modified
+- Styles are edited
+
+### Smart Routing
+
+The development server handles URL routing intelligently:
+
+```bash
+# Trailing slash redirect
+/page/ → /page.html
+
+# Extension-less URLs
+/page → /page.html
+
+# Index files
+/folder/ → /folder/index.html
+```
+
+### MIME Types
+
+Proper Content-Type headers for all file types:
+- `.webp` → `image/webp`
+- `.avif` → `image/avif`
+- Standard web formats handled automatically
+
+## Output Structure
+
+The build generates this directory structure:
+
+```
+public/
+├── index.html              # Homepage
+├── 404.html                # Error page
+├── static/
+│   ├── styles.css          # Compiled styles
+│   └── ...                 # Other static assets
+├── [your-pages].html       # Generated pages
+└── ...                     # Additional resources
+```
+
+## Performance Tips
+
+<Tip>
+**For large sites:**
+- Use `--concurrency` to optimize CPU usage
+- Enable `--bundleInfo` to identify large dependencies
+- Consider incremental builds with `--watch` during development
+</Tip>
+
+## Troubleshooting
+
+### Build Failures
+
+If the build fails:
+
+1. Check `quartz.config.ts` syntax
+2. Verify all plugins are properly configured
+3. Use `--verbose` for detailed error messages
+4. Ensure content directory exists and is readable
+
+### Server Issues
+
+<AccordionGroup>
+  <Accordion title="Port already in use">
+    Change the port:
+    ```bash
+    npx quartz build --serve --port 3000
+    ```
+  </Accordion>
+  
+  <Accordion title="Hot reload not working">
+    Check if the WebSocket port is blocked:
+    ```bash
+    npx quartz build --serve --wsPort 3002
+    ```
+  </Accordion>
+  
+  <Accordion title="Base path not working">
+    Ensure baseDir starts with `/`:
+    ```bash
+    npx quartz build --serve --baseDir /docs
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Source Code Reference
+
+The build command implementation can be found at:
+- `quartz/bootstrap-cli.mjs:35` - Command definition
+- `quartz/cli/handlers.js:235` - Build handler function
+- `quartz/cli/args.js:61` - Argument definitions
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Sync Command" icon="arrows-rotate" href="/quartz/cli/sync">
+    Deploy your built site to GitHub
+  </Card>
+  <Card title="Configuration" icon="gear" href="/quartz/configuration">
+    Customize your build with quartz.config.ts
+  </Card>
+</CardGroup>
